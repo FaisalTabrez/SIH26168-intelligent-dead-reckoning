@@ -1,0 +1,1667 @@
+{
+  "schema_version": 1,
+  "architecture_status": "ARCH3-READY-FOR-REPOSITORY-BOOTSTRAP",
+  "decision_date": "2026-09-02",
+  "meaning": "Sufficiently consistent for repository, contracts, CI scaffold and backlog; not scientific gate completion.",
+  "evidence_status": {
+    "S0": "S0-CONDITIONAL — ORGANIZER-DIRECTED COMPETITION USE",
+    "S1": "S1-PENDING-DEVICE-EVIDENCE",
+    "S2": "ACCEPTED_BOUNDED_MATHEMATICAL_SPIKE",
+    "S3": "UNRESOLVED_MANDATORY",
+    "S4": "EXPERIMENTAL_NOT_EXECUTED",
+    "S6": "CONDITIONAL_FOUNDATION_FIELD_VALIDATION_PENDING"
+  },
+  "missing_or_unadjudicated_inputs": [
+    {
+      "item": "S2 oracle/evidence package bytes",
+      "impact": "Task declares S2 accepted; conventions supplied, but this package cannot independently rehash the oracle."
+    },
+    {
+      "item": "OnePlus physical session/analyzer and instrumentation raw results",
+      "impact": "No quantitative S1 measurement or pass is used."
+    },
+    {
+      "item": "Complete S6B1 ZIP/report bytes",
+      "impact": "Manifest supports lineage/test count; runtime matcher/renderer remain pending."
+    }
+  ],
+  "requirement_coverage": [
+    {
+      "requirement_id": "CON-001",
+      "disposition": "enforced as architecture/dependency/artifact invariant",
+      "components": [
+        "C-19",
+        "C-20"
+      ],
+      "work_packages": [
+        "WP-00",
+        "WP-01",
+        "WP-17"
+      ],
+      "verified_compliance": false
+    },
+    {
+      "requirement_id": "CON-002",
+      "disposition": "enforced as architecture/dependency/artifact invariant",
+      "components": [
+        "C-19",
+        "C-20"
+      ],
+      "work_packages": [
+        "WP-00",
+        "WP-01",
+        "WP-17"
+      ],
+      "verified_compliance": false
+    },
+    {
+      "requirement_id": "CON-003",
+      "disposition": "enforced as architecture/dependency/artifact invariant",
+      "components": [
+        "C-19",
+        "C-20"
+      ],
+      "work_packages": [
+        "WP-00",
+        "WP-01",
+        "WP-17"
+      ],
+      "verified_compliance": false
+    },
+    {
+      "requirement_id": "CON-004",
+      "disposition": "enforced as architecture/dependency/artifact invariant",
+      "components": [
+        "C-19",
+        "C-20"
+      ],
+      "work_packages": [
+        "WP-00",
+        "WP-01",
+        "WP-17"
+      ],
+      "verified_compliance": false
+    },
+    {
+      "requirement_id": "CON-005",
+      "disposition": "enforced as architecture/dependency/artifact invariant",
+      "components": [
+        "C-19",
+        "C-20"
+      ],
+      "work_packages": [
+        "WP-00",
+        "WP-01",
+        "WP-17"
+      ],
+      "verified_compliance": false
+    },
+    {
+      "requirement_id": "CON-006",
+      "disposition": "enforced as architecture/dependency/artifact invariant",
+      "components": [
+        "C-19",
+        "C-20"
+      ],
+      "work_packages": [
+        "WP-00",
+        "WP-01",
+        "WP-17"
+      ],
+      "verified_compliance": false
+    },
+    {
+      "requirement_id": "CON-007",
+      "disposition": "enforced as architecture/dependency/artifact invariant",
+      "components": [
+        "C-19",
+        "C-20"
+      ],
+      "work_packages": [
+        "WP-00",
+        "WP-01",
+        "WP-17"
+      ],
+      "verified_compliance": false
+    },
+    {
+      "requirement_id": "CON-008",
+      "disposition": "enforced as architecture/dependency/artifact invariant",
+      "components": [
+        "C-19",
+        "C-20"
+      ],
+      "work_packages": [
+        "WP-00",
+        "WP-01",
+        "WP-17"
+      ],
+      "verified_compliance": false
+    },
+    {
+      "requirement_id": "DAT-001",
+      "disposition": "private conditional data/evaluation path; scientific and rights gates retained",
+      "components": [
+        "C-15",
+        "C-16",
+        "C-19"
+      ],
+      "work_packages": [
+        "WP-10",
+        "WP-11",
+        "WP-13"
+      ],
+      "verified_compliance": false
+    },
+    {
+      "requirement_id": "DAT-002",
+      "disposition": "private conditional data/evaluation path; scientific and rights gates retained",
+      "components": [
+        "C-15",
+        "C-16",
+        "C-19"
+      ],
+      "work_packages": [
+        "WP-10",
+        "WP-11",
+        "WP-13"
+      ],
+      "verified_compliance": false
+    },
+    {
+      "requirement_id": "DAT-003",
+      "disposition": "private conditional data/evaluation path; scientific and rights gates retained",
+      "components": [
+        "C-15",
+        "C-16",
+        "C-19"
+      ],
+      "work_packages": [
+        "WP-10",
+        "WP-11",
+        "WP-13"
+      ],
+      "verified_compliance": false
+    },
+    {
+      "requirement_id": "DAT-004",
+      "disposition": "private conditional data/evaluation path; scientific and rights gates retained",
+      "components": [
+        "C-15",
+        "C-16",
+        "C-19"
+      ],
+      "work_packages": [
+        "WP-10",
+        "WP-11",
+        "WP-13"
+      ],
+      "verified_compliance": false
+    },
+    {
+      "requirement_id": "DAT-005",
+      "disposition": "private conditional data/evaluation path; scientific and rights gates retained",
+      "components": [
+        "C-15",
+        "C-16",
+        "C-19"
+      ],
+      "work_packages": [
+        "WP-10",
+        "WP-11",
+        "WP-13"
+      ],
+      "verified_compliance": false
+    },
+    {
+      "requirement_id": "DAT-006",
+      "disposition": "private conditional data/evaluation path; scientific and rights gates retained",
+      "components": [
+        "C-15",
+        "C-16",
+        "C-19"
+      ],
+      "work_packages": [
+        "WP-10",
+        "WP-11",
+        "WP-13"
+      ],
+      "verified_compliance": false
+    },
+    {
+      "requirement_id": "DAT-007",
+      "disposition": "private conditional data/evaluation path; scientific and rights gates retained",
+      "components": [
+        "C-15",
+        "C-16",
+        "C-19"
+      ],
+      "work_packages": [
+        "WP-10",
+        "WP-11",
+        "WP-13"
+      ],
+      "verified_compliance": false
+    },
+    {
+      "requirement_id": "DAT-008",
+      "disposition": "private conditional data/evaluation path; scientific and rights gates retained",
+      "components": [
+        "C-15",
+        "C-16",
+        "C-19"
+      ],
+      "work_packages": [
+        "WP-10",
+        "WP-11",
+        "WP-13"
+      ],
+      "verified_compliance": false
+    },
+    {
+      "requirement_id": "DAT-009",
+      "disposition": "private conditional data/evaluation path; scientific and rights gates retained",
+      "components": [
+        "C-15",
+        "C-16",
+        "C-19"
+      ],
+      "work_packages": [
+        "WP-10",
+        "WP-11",
+        "WP-13"
+      ],
+      "verified_compliance": false
+    },
+    {
+      "requirement_id": "DEL-001",
+      "disposition": "mapped to distinct Android and portable-edge deliverables",
+      "components": [
+        "C-01",
+        "C-07",
+        "C-13",
+        "C-20"
+      ],
+      "work_packages": [
+        "WP-15",
+        "WP-16",
+        "WP-17"
+      ],
+      "verified_compliance": false
+    },
+    {
+      "requirement_id": "DEL-002",
+      "disposition": "mapped to distinct Android and portable-edge deliverables",
+      "components": [
+        "C-01",
+        "C-07",
+        "C-13",
+        "C-20"
+      ],
+      "work_packages": [
+        "WP-15",
+        "WP-16",
+        "WP-17"
+      ],
+      "verified_compliance": false
+    },
+    {
+      "requirement_id": "DEP-001",
+      "disposition": "offline local deployment path defined",
+      "components": [
+        "C-01",
+        "C-06",
+        "C-07",
+        "C-08",
+        "C-10",
+        "C-13"
+      ],
+      "work_packages": [
+        "WP-02",
+        "WP-03",
+        "WP-08",
+        "WP-09",
+        "WP-12",
+        "WP-16"
+      ],
+      "verified_compliance": false
+    },
+    {
+      "requirement_id": "DEP-002",
+      "disposition": "offline local deployment path defined",
+      "components": [
+        "C-01",
+        "C-06",
+        "C-07",
+        "C-08",
+        "C-10",
+        "C-13"
+      ],
+      "work_packages": [
+        "WP-02",
+        "WP-03",
+        "WP-08",
+        "WP-09",
+        "WP-12",
+        "WP-16"
+      ],
+      "verified_compliance": false
+    },
+    {
+      "requirement_id": "DEP-003",
+      "disposition": "offline local deployment path defined",
+      "components": [
+        "C-01",
+        "C-06",
+        "C-07",
+        "C-08",
+        "C-10",
+        "C-13"
+      ],
+      "work_packages": [
+        "WP-02",
+        "WP-03",
+        "WP-08",
+        "WP-09",
+        "WP-12",
+        "WP-16"
+      ],
+      "verified_compliance": false
+    },
+    {
+      "requirement_id": "DEP-004",
+      "disposition": "offline local deployment path defined",
+      "components": [
+        "C-01",
+        "C-06",
+        "C-07",
+        "C-08",
+        "C-10",
+        "C-13"
+      ],
+      "work_packages": [
+        "WP-02",
+        "WP-03",
+        "WP-08",
+        "WP-09",
+        "WP-12",
+        "WP-16"
+      ],
+      "verified_compliance": false
+    },
+    {
+      "requirement_id": "DEP-005",
+      "disposition": "offline local deployment path defined",
+      "components": [
+        "C-01",
+        "C-06",
+        "C-07",
+        "C-08",
+        "C-10",
+        "C-13"
+      ],
+      "work_packages": [
+        "WP-02",
+        "WP-03",
+        "WP-08",
+        "WP-09",
+        "WP-12",
+        "WP-16"
+      ],
+      "verified_compliance": false
+    },
+    {
+      "requirement_id": "DEP-006",
+      "disposition": "offline local deployment path defined",
+      "components": [
+        "C-01",
+        "C-06",
+        "C-07",
+        "C-08",
+        "C-10",
+        "C-13"
+      ],
+      "work_packages": [
+        "WP-02",
+        "WP-03",
+        "WP-08",
+        "WP-09",
+        "WP-12",
+        "WP-16"
+      ],
+      "verified_compliance": false
+    },
+    {
+      "requirement_id": "DEP-007",
+      "disposition": "offline local deployment path defined",
+      "components": [
+        "C-01",
+        "C-06",
+        "C-07",
+        "C-08",
+        "C-10",
+        "C-13"
+      ],
+      "work_packages": [
+        "WP-02",
+        "WP-03",
+        "WP-08",
+        "WP-09",
+        "WP-12",
+        "WP-16"
+      ],
+      "verified_compliance": false
+    },
+    {
+      "requirement_id": "DEP-008",
+      "disposition": "offline local deployment path defined",
+      "components": [
+        "C-01",
+        "C-06",
+        "C-07",
+        "C-08",
+        "C-10",
+        "C-13"
+      ],
+      "work_packages": [
+        "WP-02",
+        "WP-03",
+        "WP-08",
+        "WP-09",
+        "WP-12",
+        "WP-16"
+      ],
+      "verified_compliance": false
+    },
+    {
+      "requirement_id": "FUN-001",
+      "disposition": "mapped to scientific/demo component and verification work; evidence gate retained",
+      "components": [
+        "C-01",
+        "C-05",
+        "C-07",
+        "C-08",
+        "C-09",
+        "C-10",
+        "C-11",
+        "C-13"
+      ],
+      "work_packages": [
+        "WP-02",
+        "WP-06",
+        "WP-07",
+        "WP-08",
+        "WP-09",
+        "WP-12",
+        "WP-14",
+        "WP-15"
+      ],
+      "verified_compliance": false
+    },
+    {
+      "requirement_id": "FUN-002",
+      "disposition": "mapped to scientific/demo component and verification work; evidence gate retained",
+      "components": [
+        "C-01",
+        "C-05",
+        "C-07",
+        "C-08",
+        "C-09",
+        "C-10",
+        "C-11",
+        "C-13"
+      ],
+      "work_packages": [
+        "WP-02",
+        "WP-06",
+        "WP-07",
+        "WP-08",
+        "WP-09",
+        "WP-12",
+        "WP-14",
+        "WP-15"
+      ],
+      "verified_compliance": false
+    },
+    {
+      "requirement_id": "FUN-003",
+      "disposition": "mapped to scientific/demo component and verification work; evidence gate retained",
+      "components": [
+        "C-01",
+        "C-05",
+        "C-07",
+        "C-08",
+        "C-09",
+        "C-10",
+        "C-11",
+        "C-13"
+      ],
+      "work_packages": [
+        "WP-02",
+        "WP-06",
+        "WP-07",
+        "WP-08",
+        "WP-09",
+        "WP-12",
+        "WP-14",
+        "WP-15"
+      ],
+      "verified_compliance": false
+    },
+    {
+      "requirement_id": "FUN-004",
+      "disposition": "mapped to scientific/demo component and verification work; evidence gate retained",
+      "components": [
+        "C-01",
+        "C-05",
+        "C-07",
+        "C-08",
+        "C-09",
+        "C-10",
+        "C-11",
+        "C-13"
+      ],
+      "work_packages": [
+        "WP-02",
+        "WP-06",
+        "WP-07",
+        "WP-08",
+        "WP-09",
+        "WP-12",
+        "WP-14",
+        "WP-15"
+      ],
+      "verified_compliance": false
+    },
+    {
+      "requirement_id": "FUN-005",
+      "disposition": "mapped to scientific/demo component and verification work; evidence gate retained",
+      "components": [
+        "C-01",
+        "C-05",
+        "C-07",
+        "C-08",
+        "C-09",
+        "C-10",
+        "C-11",
+        "C-13"
+      ],
+      "work_packages": [
+        "WP-02",
+        "WP-06",
+        "WP-07",
+        "WP-08",
+        "WP-09",
+        "WP-12",
+        "WP-14",
+        "WP-15"
+      ],
+      "verified_compliance": false
+    },
+    {
+      "requirement_id": "FUN-006",
+      "disposition": "mapped to scientific/demo component and verification work; evidence gate retained",
+      "components": [
+        "C-01",
+        "C-05",
+        "C-07",
+        "C-08",
+        "C-09",
+        "C-10",
+        "C-11",
+        "C-13"
+      ],
+      "work_packages": [
+        "WP-02",
+        "WP-06",
+        "WP-07",
+        "WP-08",
+        "WP-09",
+        "WP-12",
+        "WP-14",
+        "WP-15"
+      ],
+      "verified_compliance": false
+    },
+    {
+      "requirement_id": "FUN-007",
+      "disposition": "mapped to scientific/demo component and verification work; evidence gate retained",
+      "components": [
+        "C-01",
+        "C-05",
+        "C-07",
+        "C-08",
+        "C-09",
+        "C-10",
+        "C-11",
+        "C-13"
+      ],
+      "work_packages": [
+        "WP-02",
+        "WP-06",
+        "WP-07",
+        "WP-08",
+        "WP-09",
+        "WP-12",
+        "WP-14",
+        "WP-15"
+      ],
+      "verified_compliance": false
+    },
+    {
+      "requirement_id": "FUN-008",
+      "disposition": "mapped to scientific/demo component and verification work; evidence gate retained",
+      "components": [
+        "C-01",
+        "C-05",
+        "C-07",
+        "C-08",
+        "C-09",
+        "C-10",
+        "C-11",
+        "C-13"
+      ],
+      "work_packages": [
+        "WP-02",
+        "WP-06",
+        "WP-07",
+        "WP-08",
+        "WP-09",
+        "WP-12",
+        "WP-14",
+        "WP-15"
+      ],
+      "verified_compliance": false
+    },
+    {
+      "requirement_id": "FUN-009",
+      "disposition": "mapped to scientific/demo component and verification work; evidence gate retained",
+      "components": [
+        "C-01",
+        "C-05",
+        "C-07",
+        "C-08",
+        "C-09",
+        "C-10",
+        "C-11",
+        "C-13"
+      ],
+      "work_packages": [
+        "WP-02",
+        "WP-06",
+        "WP-07",
+        "WP-08",
+        "WP-09",
+        "WP-12",
+        "WP-14",
+        "WP-15"
+      ],
+      "verified_compliance": false
+    },
+    {
+      "requirement_id": "FUN-010",
+      "disposition": "mapped to scientific/demo component and verification work; evidence gate retained",
+      "components": [
+        "C-01",
+        "C-05",
+        "C-07",
+        "C-08",
+        "C-09",
+        "C-10",
+        "C-11",
+        "C-13"
+      ],
+      "work_packages": [
+        "WP-02",
+        "WP-06",
+        "WP-07",
+        "WP-08",
+        "WP-09",
+        "WP-12",
+        "WP-14",
+        "WP-15"
+      ],
+      "verified_compliance": false
+    },
+    {
+      "requirement_id": "FUN-011",
+      "disposition": "mapped to scientific/demo component and verification work; evidence gate retained",
+      "components": [
+        "C-01",
+        "C-05",
+        "C-07",
+        "C-08",
+        "C-09",
+        "C-10",
+        "C-11",
+        "C-13"
+      ],
+      "work_packages": [
+        "WP-02",
+        "WP-06",
+        "WP-07",
+        "WP-08",
+        "WP-09",
+        "WP-12",
+        "WP-14",
+        "WP-15"
+      ],
+      "verified_compliance": false
+    },
+    {
+      "requirement_id": "FUN-012",
+      "disposition": "mapped to scientific/demo component and verification work; evidence gate retained",
+      "components": [
+        "C-01",
+        "C-05",
+        "C-07",
+        "C-08",
+        "C-09",
+        "C-10",
+        "C-11",
+        "C-13"
+      ],
+      "work_packages": [
+        "WP-02",
+        "WP-06",
+        "WP-07",
+        "WP-08",
+        "WP-09",
+        "WP-12",
+        "WP-14",
+        "WP-15"
+      ],
+      "verified_compliance": false
+    },
+    {
+      "requirement_id": "FUN-013",
+      "disposition": "mapped to scientific/demo component and verification work; evidence gate retained",
+      "components": [
+        "C-01",
+        "C-05",
+        "C-07",
+        "C-08",
+        "C-09",
+        "C-10",
+        "C-11",
+        "C-13"
+      ],
+      "work_packages": [
+        "WP-02",
+        "WP-06",
+        "WP-07",
+        "WP-08",
+        "WP-09",
+        "WP-12",
+        "WP-14",
+        "WP-15"
+      ],
+      "verified_compliance": false
+    },
+    {
+      "requirement_id": "FUN-014",
+      "disposition": "mapped to scientific/demo component and verification work; evidence gate retained",
+      "components": [
+        "C-01",
+        "C-05",
+        "C-07",
+        "C-08",
+        "C-09",
+        "C-10",
+        "C-11",
+        "C-13"
+      ],
+      "work_packages": [
+        "WP-02",
+        "WP-06",
+        "WP-07",
+        "WP-08",
+        "WP-09",
+        "WP-12",
+        "WP-14",
+        "WP-15"
+      ],
+      "verified_compliance": false
+    },
+    {
+      "requirement_id": "FUN-015",
+      "disposition": "mapped to scientific/demo component and verification work; evidence gate retained",
+      "components": [
+        "C-01",
+        "C-05",
+        "C-07",
+        "C-08",
+        "C-09",
+        "C-10",
+        "C-11",
+        "C-13"
+      ],
+      "work_packages": [
+        "WP-02",
+        "WP-06",
+        "WP-07",
+        "WP-08",
+        "WP-09",
+        "WP-12",
+        "WP-14",
+        "WP-15"
+      ],
+      "verified_compliance": false
+    },
+    {
+      "requirement_id": "FUN-016",
+      "disposition": "mapped to scientific/demo component and verification work; evidence gate retained",
+      "components": [
+        "C-01",
+        "C-05",
+        "C-07",
+        "C-08",
+        "C-09",
+        "C-10",
+        "C-11",
+        "C-13"
+      ],
+      "work_packages": [
+        "WP-02",
+        "WP-06",
+        "WP-07",
+        "WP-08",
+        "WP-09",
+        "WP-12",
+        "WP-14",
+        "WP-15"
+      ],
+      "verified_compliance": false
+    },
+    {
+      "requirement_id": "FUN-017",
+      "disposition": "mapped to scientific/demo component and verification work; evidence gate retained",
+      "components": [
+        "C-01",
+        "C-05",
+        "C-07",
+        "C-08",
+        "C-09",
+        "C-10",
+        "C-11",
+        "C-13"
+      ],
+      "work_packages": [
+        "WP-02",
+        "WP-06",
+        "WP-07",
+        "WP-08",
+        "WP-09",
+        "WP-12",
+        "WP-14",
+        "WP-15"
+      ],
+      "verified_compliance": false
+    },
+    {
+      "requirement_id": "FUN-018",
+      "disposition": "mapped to scientific/demo component and verification work; evidence gate retained",
+      "components": [
+        "C-01",
+        "C-05",
+        "C-07",
+        "C-08",
+        "C-09",
+        "C-10",
+        "C-11",
+        "C-13"
+      ],
+      "work_packages": [
+        "WP-02",
+        "WP-06",
+        "WP-07",
+        "WP-08",
+        "WP-09",
+        "WP-12",
+        "WP-14",
+        "WP-15"
+      ],
+      "verified_compliance": false
+    },
+    {
+      "requirement_id": "FUN-019",
+      "disposition": "mapped to scientific/demo component and verification work; evidence gate retained",
+      "components": [
+        "C-01",
+        "C-05",
+        "C-07",
+        "C-08",
+        "C-09",
+        "C-10",
+        "C-11",
+        "C-13"
+      ],
+      "work_packages": [
+        "WP-02",
+        "WP-06",
+        "WP-07",
+        "WP-08",
+        "WP-09",
+        "WP-12",
+        "WP-14",
+        "WP-15"
+      ],
+      "verified_compliance": false
+    },
+    {
+      "requirement_id": "FUN-020",
+      "disposition": "mapped to scientific/demo component and verification work; evidence gate retained",
+      "components": [
+        "C-01",
+        "C-05",
+        "C-07",
+        "C-08",
+        "C-09",
+        "C-10",
+        "C-11",
+        "C-13"
+      ],
+      "work_packages": [
+        "WP-02",
+        "WP-06",
+        "WP-07",
+        "WP-08",
+        "WP-09",
+        "WP-12",
+        "WP-14",
+        "WP-15"
+      ],
+      "verified_compliance": false
+    },
+    {
+      "requirement_id": "FUN-021",
+      "disposition": "mapped to scientific/demo component and verification work; evidence gate retained",
+      "components": [
+        "C-01",
+        "C-05",
+        "C-07",
+        "C-08",
+        "C-09",
+        "C-10",
+        "C-11",
+        "C-13"
+      ],
+      "work_packages": [
+        "WP-02",
+        "WP-06",
+        "WP-07",
+        "WP-08",
+        "WP-09",
+        "WP-12",
+        "WP-14",
+        "WP-15"
+      ],
+      "verified_compliance": false
+    },
+    {
+      "requirement_id": "FUN-022",
+      "disposition": "mapped to scientific/demo component and verification work; evidence gate retained",
+      "components": [
+        "C-01",
+        "C-05",
+        "C-07",
+        "C-08",
+        "C-09",
+        "C-10",
+        "C-11",
+        "C-13"
+      ],
+      "work_packages": [
+        "WP-02",
+        "WP-06",
+        "WP-07",
+        "WP-08",
+        "WP-09",
+        "WP-12",
+        "WP-14",
+        "WP-15"
+      ],
+      "verified_compliance": false
+    },
+    {
+      "requirement_id": "INT-001",
+      "disposition": "architecturally supported; empirical compliance not claimed",
+      "components": [
+        "C-07",
+        "C-09",
+        "C-10",
+        "C-14"
+      ],
+      "work_packages": [
+        "WP-13",
+        "WP-15",
+        "WP-17"
+      ],
+      "verified_compliance": false
+    },
+    {
+      "requirement_id": "INT-002",
+      "disposition": "architecturally supported; empirical compliance not claimed",
+      "components": [
+        "C-07",
+        "C-09",
+        "C-10",
+        "C-14"
+      ],
+      "work_packages": [
+        "WP-13",
+        "WP-15",
+        "WP-17"
+      ],
+      "verified_compliance": false
+    },
+    {
+      "requirement_id": "INT-003",
+      "disposition": "architecturally supported; empirical compliance not claimed",
+      "components": [
+        "C-07",
+        "C-09",
+        "C-10",
+        "C-14"
+      ],
+      "work_packages": [
+        "WP-13",
+        "WP-15",
+        "WP-17"
+      ],
+      "verified_compliance": false
+    },
+    {
+      "requirement_id": "INT-004",
+      "disposition": "architecturally supported; empirical compliance not claimed",
+      "components": [
+        "C-07",
+        "C-09",
+        "C-10",
+        "C-14"
+      ],
+      "work_packages": [
+        "WP-13",
+        "WP-15",
+        "WP-17"
+      ],
+      "verified_compliance": false
+    },
+    {
+      "requirement_id": "INT-005",
+      "disposition": "architecturally supported; empirical compliance not claimed",
+      "components": [
+        "C-07",
+        "C-09",
+        "C-10",
+        "C-14"
+      ],
+      "work_packages": [
+        "WP-13",
+        "WP-15",
+        "WP-17"
+      ],
+      "verified_compliance": false
+    },
+    {
+      "requirement_id": "INT-006",
+      "disposition": "architecturally supported; empirical compliance not claimed",
+      "components": [
+        "C-07",
+        "C-09",
+        "C-10",
+        "C-14"
+      ],
+      "work_packages": [
+        "WP-13",
+        "WP-15",
+        "WP-17"
+      ],
+      "verified_compliance": false
+    },
+    {
+      "requirement_id": "INT-007",
+      "disposition": "architecturally supported; empirical compliance not claimed",
+      "components": [
+        "C-07",
+        "C-09",
+        "C-10",
+        "C-14"
+      ],
+      "work_packages": [
+        "WP-13",
+        "WP-15",
+        "WP-17"
+      ],
+      "verified_compliance": false
+    },
+    {
+      "requirement_id": "INT-008",
+      "disposition": "architecturally supported; empirical compliance not claimed",
+      "components": [
+        "C-07",
+        "C-09",
+        "C-10",
+        "C-14"
+      ],
+      "work_packages": [
+        "WP-13",
+        "WP-15",
+        "WP-17"
+      ],
+      "verified_compliance": false
+    },
+    {
+      "requirement_id": "INT-009",
+      "disposition": "architecturally supported; empirical compliance not claimed",
+      "components": [
+        "C-07",
+        "C-09",
+        "C-10",
+        "C-14"
+      ],
+      "work_packages": [
+        "WP-13",
+        "WP-15",
+        "WP-17"
+      ],
+      "verified_compliance": false
+    },
+    {
+      "requirement_id": "INT-010",
+      "disposition": "architecturally supported; empirical compliance not claimed",
+      "components": [
+        "C-07",
+        "C-09",
+        "C-10",
+        "C-14"
+      ],
+      "work_packages": [
+        "WP-13",
+        "WP-15",
+        "WP-17"
+      ],
+      "verified_compliance": false
+    },
+    {
+      "requirement_id": "INT-011",
+      "disposition": "architecturally supported; empirical compliance not claimed",
+      "components": [
+        "C-07",
+        "C-09",
+        "C-10",
+        "C-14"
+      ],
+      "work_packages": [
+        "WP-13",
+        "WP-15",
+        "WP-17"
+      ],
+      "verified_compliance": false
+    },
+    {
+      "requirement_id": "INT-012",
+      "disposition": "architecturally supported; empirical compliance not claimed",
+      "components": [
+        "C-07",
+        "C-09",
+        "C-10",
+        "C-14"
+      ],
+      "work_packages": [
+        "WP-13",
+        "WP-15",
+        "WP-17"
+      ],
+      "verified_compliance": false
+    },
+    {
+      "requirement_id": "OOS-001",
+      "disposition": "enforced exclusion/deferred through dependency and review rules",
+      "components": [
+        "C-19",
+        "C-20"
+      ],
+      "work_packages": [
+        "WP-00",
+        "WP-17"
+      ],
+      "verified_compliance": false
+    },
+    {
+      "requirement_id": "OOS-002",
+      "disposition": "enforced exclusion/deferred through dependency and review rules",
+      "components": [
+        "C-19",
+        "C-20"
+      ],
+      "work_packages": [
+        "WP-00",
+        "WP-17"
+      ],
+      "verified_compliance": false
+    },
+    {
+      "requirement_id": "OOS-003",
+      "disposition": "enforced exclusion/deferred through dependency and review rules",
+      "components": [
+        "C-19",
+        "C-20"
+      ],
+      "work_packages": [
+        "WP-00",
+        "WP-17"
+      ],
+      "verified_compliance": false
+    },
+    {
+      "requirement_id": "OOS-004",
+      "disposition": "enforced exclusion/deferred through dependency and review rules",
+      "components": [
+        "C-19",
+        "C-20"
+      ],
+      "work_packages": [
+        "WP-00",
+        "WP-17"
+      ],
+      "verified_compliance": false
+    },
+    {
+      "requirement_id": "OOS-005",
+      "disposition": "enforced exclusion/deferred through dependency and review rules",
+      "components": [
+        "C-19",
+        "C-20"
+      ],
+      "work_packages": [
+        "WP-00",
+        "WP-17"
+      ],
+      "verified_compliance": false
+    },
+    {
+      "requirement_id": "OOS-006",
+      "disposition": "enforced exclusion/deferred through dependency and review rules",
+      "components": [
+        "C-19",
+        "C-20"
+      ],
+      "work_packages": [
+        "WP-00",
+        "WP-17"
+      ],
+      "verified_compliance": false
+    },
+    {
+      "requirement_id": "OOS-007",
+      "disposition": "enforced exclusion/deferred through dependency and review rules",
+      "components": [
+        "C-19",
+        "C-20"
+      ],
+      "work_packages": [
+        "WP-00",
+        "WP-17"
+      ],
+      "verified_compliance": false
+    },
+    {
+      "requirement_id": "OOS-008",
+      "disposition": "enforced exclusion/deferred through dependency and review rules",
+      "components": [
+        "C-19",
+        "C-20"
+      ],
+      "work_packages": [
+        "WP-00",
+        "WP-17"
+      ],
+      "verified_compliance": false
+    },
+    {
+      "requirement_id": "OOS-009",
+      "disposition": "enforced exclusion/deferred through dependency and review rules",
+      "components": [
+        "C-19",
+        "C-20"
+      ],
+      "work_packages": [
+        "WP-00",
+        "WP-17"
+      ],
+      "verified_compliance": false
+    },
+    {
+      "requirement_id": "OOS-010",
+      "disposition": "enforced exclusion/deferred through dependency and review rules",
+      "components": [
+        "C-19",
+        "C-20"
+      ],
+      "work_packages": [
+        "WP-00",
+        "WP-17"
+      ],
+      "verified_compliance": false
+    },
+    {
+      "requirement_id": "OOS-011",
+      "disposition": "enforced exclusion/deferred through dependency and review rules",
+      "components": [
+        "C-19",
+        "C-20"
+      ],
+      "work_packages": [
+        "WP-00",
+        "WP-17"
+      ],
+      "verified_compliance": false
+    },
+    {
+      "requirement_id": "OOS-012",
+      "disposition": "enforced exclusion/deferred through dependency and review rules",
+      "components": [
+        "C-19",
+        "C-20"
+      ],
+      "work_packages": [
+        "WP-00",
+        "WP-17"
+      ],
+      "verified_compliance": false
+    },
+    {
+      "requirement_id": "OOS-013",
+      "disposition": "enforced exclusion/deferred through dependency and review rules",
+      "components": [
+        "C-19",
+        "C-20"
+      ],
+      "work_packages": [
+        "WP-00",
+        "WP-17"
+      ],
+      "verified_compliance": false
+    },
+    {
+      "requirement_id": "OOS-014",
+      "disposition": "enforced exclusion/deferred through dependency and review rules",
+      "components": [
+        "C-19",
+        "C-20"
+      ],
+      "work_packages": [
+        "WP-00",
+        "WP-17"
+      ],
+      "verified_compliance": false
+    },
+    {
+      "requirement_id": "PER-001",
+      "disposition": "architecturally supported; empirical compliance not claimed",
+      "components": [
+        "C-07",
+        "C-09",
+        "C-10",
+        "C-14"
+      ],
+      "work_packages": [
+        "WP-13",
+        "WP-15",
+        "WP-17"
+      ],
+      "verified_compliance": false
+    },
+    {
+      "requirement_id": "PER-002",
+      "disposition": "architecturally supported; empirical compliance not claimed",
+      "components": [
+        "C-07",
+        "C-09",
+        "C-10",
+        "C-14"
+      ],
+      "work_packages": [
+        "WP-13",
+        "WP-15",
+        "WP-17"
+      ],
+      "verified_compliance": false
+    },
+    {
+      "requirement_id": "PER-003",
+      "disposition": "architecturally supported; empirical compliance not claimed",
+      "components": [
+        "C-07",
+        "C-09",
+        "C-10",
+        "C-14"
+      ],
+      "work_packages": [
+        "WP-13",
+        "WP-15",
+        "WP-17"
+      ],
+      "verified_compliance": false
+    },
+    {
+      "requirement_id": "PER-004",
+      "disposition": "architecturally supported; empirical compliance not claimed",
+      "components": [
+        "C-07",
+        "C-09",
+        "C-10",
+        "C-14"
+      ],
+      "work_packages": [
+        "WP-13",
+        "WP-15",
+        "WP-17"
+      ],
+      "verified_compliance": false
+    },
+    {
+      "requirement_id": "PER-005",
+      "disposition": "architecturally supported; empirical compliance not claimed",
+      "components": [
+        "C-07",
+        "C-09",
+        "C-10",
+        "C-14"
+      ],
+      "work_packages": [
+        "WP-13",
+        "WP-15",
+        "WP-17"
+      ],
+      "verified_compliance": false
+    },
+    {
+      "requirement_id": "PER-006",
+      "disposition": "architecturally supported; empirical compliance not claimed",
+      "components": [
+        "C-07",
+        "C-09",
+        "C-10",
+        "C-14"
+      ],
+      "work_packages": [
+        "WP-13",
+        "WP-15",
+        "WP-17"
+      ],
+      "verified_compliance": false
+    },
+    {
+      "requirement_id": "PER-007",
+      "disposition": "architecturally supported; empirical compliance not claimed",
+      "components": [
+        "C-07",
+        "C-09",
+        "C-10",
+        "C-14"
+      ],
+      "work_packages": [
+        "WP-13",
+        "WP-15",
+        "WP-17"
+      ],
+      "verified_compliance": false
+    },
+    {
+      "requirement_id": "UNK-001",
+      "disposition": "open; conservative interpretation retained",
+      "components": [],
+      "work_packages": [
+        "WP-13"
+      ],
+      "verified_compliance": false
+    },
+    {
+      "requirement_id": "UNK-002",
+      "disposition": "open; conservative interpretation retained",
+      "components": [],
+      "work_packages": [
+        "WP-13"
+      ],
+      "verified_compliance": false
+    },
+    {
+      "requirement_id": "UNK-003",
+      "disposition": "open; conservative interpretation retained",
+      "components": [],
+      "work_packages": [
+        "WP-13"
+      ],
+      "verified_compliance": false
+    },
+    {
+      "requirement_id": "UNK-004",
+      "disposition": "open; conservative interpretation retained",
+      "components": [],
+      "work_packages": [
+        "WP-13"
+      ],
+      "verified_compliance": false
+    },
+    {
+      "requirement_id": "UNK-005",
+      "disposition": "open; conservative interpretation retained",
+      "components": [],
+      "work_packages": [
+        "WP-13"
+      ],
+      "verified_compliance": false
+    },
+    {
+      "requirement_id": "UNK-006",
+      "disposition": "open; conservative interpretation retained",
+      "components": [],
+      "work_packages": [
+        "WP-13"
+      ],
+      "verified_compliance": false
+    },
+    {
+      "requirement_id": "UNK-007",
+      "disposition": "open; conservative interpretation retained",
+      "components": [],
+      "work_packages": [
+        "WP-13"
+      ],
+      "verified_compliance": false
+    },
+    {
+      "requirement_id": "UNK-008",
+      "disposition": "open; conservative interpretation retained",
+      "components": [],
+      "work_packages": [
+        "WP-13"
+      ],
+      "verified_compliance": false
+    },
+    {
+      "requirement_id": "UNK-009",
+      "disposition": "open; conservative interpretation retained",
+      "components": [],
+      "work_packages": [
+        "WP-13"
+      ],
+      "verified_compliance": false
+    },
+    {
+      "requirement_id": "UNK-010",
+      "disposition": "open; conservative interpretation retained",
+      "components": [],
+      "work_packages": [
+        "WP-13"
+      ],
+      "verified_compliance": false
+    },
+    {
+      "requirement_id": "UNK-011",
+      "disposition": "open; conservative interpretation retained",
+      "components": [],
+      "work_packages": [
+        "WP-13"
+      ],
+      "verified_compliance": false
+    },
+    {
+      "requirement_id": "UNK-012",
+      "disposition": "open; conservative interpretation retained",
+      "components": [],
+      "work_packages": [
+        "WP-13"
+      ],
+      "verified_compliance": false
+    },
+    {
+      "requirement_id": "UNK-013",
+      "disposition": "open; conservative interpretation retained",
+      "components": [],
+      "work_packages": [
+        "WP-13"
+      ],
+      "verified_compliance": false
+    },
+    {
+      "requirement_id": "UNK-014",
+      "disposition": "open; conservative interpretation retained",
+      "components": [],
+      "work_packages": [
+        "WP-13"
+      ],
+      "verified_compliance": false
+    },
+    {
+      "requirement_id": "UNK-015",
+      "disposition": "open; conservative interpretation retained",
+      "components": [],
+      "work_packages": [
+        "WP-13"
+      ],
+      "verified_compliance": false
+    },
+    {
+      "requirement_id": "UNK-016",
+      "disposition": "open; conservative interpretation retained",
+      "components": [],
+      "work_packages": [
+        "WP-13"
+      ],
+      "verified_compliance": false
+    }
+  ],
+  "repository_bootstrap_blockers": [],
+  "scientific_or_demo_blockers": [
+    "S1 named-device protocol",
+    "S3 alignment method",
+    "S4 learned performance/promotion",
+    "runtime matcher and Android renderer gates",
+    "field permission/safety/final route",
+    "adequate ground truth and drift metric",
+    "weight redistribution permission"
+  ]
+}

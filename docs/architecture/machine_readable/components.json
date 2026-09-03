@@ -1,0 +1,513 @@
+{
+  "schema_version": 1,
+  "components": [
+    {
+      "component_id": "C-01",
+      "name": "Android application and acquisition service",
+      "purpose": "Own permissions, the user-started location foreground service, SensorManager/LocationManager callbacks, capabilities and live/replay source selection.",
+      "responsibilities": "Preserve native samples; tag provider and clocks; expose lifecycle/context; never estimate or rewrite evidence.",
+      "inputs": "Android callbacks; replay source; user commands",
+      "outputs": "I-01,I-02,I-04,I-17",
+      "owned_state": "Permission and service lifecycle only",
+      "dependencies": "Android SDK; C-20",
+      "failure_behaviour": "Fail closed on missing mandatory accelerometer/gyro or permission; publish capability status",
+      "execution_environment": "Android/Kotlin",
+      "classification": "production+demo",
+      "proposed_owner_role": "R5 Android/frontend",
+      "required_tests": "JVM; instrumentation; physical-device S1",
+      "current_evidence_status": "S1 implementation verified; physical protocol incomplete",
+      "interfaces_consumed": [
+        "I-17"
+      ],
+      "interfaces_provided": [
+        "I-01",
+        "I-02",
+        "I-04"
+      ]
+    },
+    {
+      "component_id": "C-02",
+      "name": "Session evidence writer",
+      "purpose": "Persist immutable, replayable source evidence and manifests.",
+      "responsibilities": "Append JSONL chunks; sequence, hash, fsync, rotate, recover partial sessions, export ZIP.",
+      "inputs": "I-01,I-02,I-04,I-13,I-14,I-15,I-07,I-16",
+      "outputs": "I-18",
+      "owned_state": "Session/chunk lifecycle and loss counters",
+      "dependencies": "C-20",
+      "failure_behaviour": "Mark INCOMPLETE or EVIDENCE_DEGRADED; never invent missing records",
+      "execution_environment": "Android/Kotlin I/O thread",
+      "classification": "production",
+      "proposed_owner_role": "R4 testing/MLOps",
+      "required_tests": "Writer unit; crash recovery; low-storage; replay round-trip",
+      "current_evidence_status": "S1 writer path verified synthetically; device durability pending",
+      "interfaces_consumed": [
+        "I-01",
+        "I-02",
+        "I-04",
+        "I-13",
+        "I-14",
+        "I-15",
+        "I-07",
+        "I-16"
+      ],
+      "interfaces_provided": [
+        "I-18"
+      ]
+    },
+    {
+      "component_id": "C-03",
+      "name": "Timebase and sensor-quality adapter",
+      "purpose": "Validate ordering/rates without destroying source timing or axes.",
+      "responsibilities": "Compute dt/age; retain arrival time; detect gaps, batching, non-monotonicity, saturation and missing streams; form bounded batches.",
+      "inputs": "I-01,I-02",
+      "outputs": "I-03,I-04,I-12",
+      "owned_state": "Per-stream last sequence/timestamp and health windows",
+      "dependencies": "C-20",
+      "failure_behaviour": "Reject invalid core input while recording the raw event and typed reason",
+      "execution_environment": "Android/Kotlin navigation executor",
+      "classification": "production",
+      "proposed_owner_role": "R5 Android/frontend",
+      "required_tests": "Property; fixtures; S1 replay",
+      "current_evidence_status": "S1 contract verified; delivered rates device-specific",
+      "interfaces_consumed": [
+        "I-01",
+        "I-02"
+      ],
+      "interfaces_provided": [
+        "I-03",
+        "I-04",
+        "I-12"
+      ]
+    },
+    {
+      "component_id": "C-04",
+      "name": "Calibration manager",
+      "purpose": "Supply bias/noise priors and stationary evidence; never own the operational bias.",
+      "responsibilities": "Stationary detection, profile selection, prior covariance and validity.",
+      "inputs": "I-03,I-04",
+      "outputs": "I-05",
+      "owned_state": "Calibration evidence/profile only",
+      "dependencies": "C-20",
+      "failure_behaviour": "Emit invalid/unavailable prior; core uses conservative initialization",
+      "execution_environment": "Android/Kotlin with offline profile tooling",
+      "classification": "production+offline",
+      "proposed_owner_role": "R1 navigation lead",
+      "required_tests": "Synthetic stationary; replay; prior/core ownership invariant",
+      "current_evidence_status": "Method not physically validated; S2 boundary frozen",
+      "interfaces_consumed": [
+        "I-03",
+        "I-04"
+      ],
+      "interfaces_provided": [
+        "I-05"
+      ]
+    },
+    {
+      "component_id": "C-05",
+      "name": "Alignment and mount-state estimator",
+      "purpose": "Own phone-body to vehicle rotation posterior and mount-change state outside S2.",
+      "responsibilities": "Estimate alignment with covariance; gate observability; detect change; expose VALID/UNCERTAIN/SLIP_SUSPECTED.",
+      "inputs": "I-03,I-02,I-04,I-07",
+      "outputs": "I-06",
+      "owned_state": "Alignment posterior and validity",
+      "dependencies": "C-20",
+      "failure_behaviour": "Disable alignment-dependent learned/kinematic constraints; never fabricate yaw",
+      "execution_environment": "Android/C++ experimental boundary",
+      "classification": "production experimental",
+      "proposed_owner_role": "R1 navigation lead",
+      "required_tests": "S3 controlled orientation/slip protocol; replay; absent magnetometer",
+      "current_evidence_status": "S3 unresolved mandatory gate",
+      "interfaces_consumed": [
+        "I-03",
+        "I-02",
+        "I-04",
+        "I-07"
+      ],
+      "interfaces_provided": [
+        "I-06"
+      ]
+    },
+    {
+      "component_id": "C-06",
+      "name": "Navigation-core JNI adapter",
+      "purpose": "Batch canonical measurements into the C++ core without Android types or per-sample serialization.",
+      "responsibilities": "Validate ABI/schema; copy/direct-buffer ownership; serialize calls on one executor; translate typed results.",
+      "inputs": "I-03,I-05,I-12,I-09,I-10",
+      "outputs": "I-07,I-08,I-11",
+      "owned_state": "Core handle and ABI version only",
+      "dependencies": "C-07;C-20",
+      "failure_behaviour": "Stop scientific output and publish CORE_FAULT; never restart as continuous state",
+      "execution_environment": "Android/Kotlin+C++ JNI",
+      "classification": "production",
+      "proposed_owner_role": "R1 navigation lead + R5",
+      "required_tests": "JNI contract; lifecycle; malformed buffer; parity fixtures",
+      "current_evidence_status": "Boundary selected; integration not executed",
+      "interfaces_consumed": [
+        "I-03",
+        "I-05",
+        "I-12",
+        "I-09",
+        "I-10"
+      ],
+      "interfaces_provided": [
+        "I-07",
+        "I-08",
+        "I-11"
+      ]
+    },
+    {
+      "component_id": "C-07",
+      "name": "Canonical C++ navigation core",
+      "purpose": "Sole owner of S2 nominal state, operational biases, covariance, evidence-ID ledger, propagation and GNSS updates.",
+      "responsibilities": "S2 midpoint propagation; ESKF covariance; innovation gates; Joseph update; reset Jacobian; numerical checks.",
+      "inputs": "I-03,I-05,I-12,I-09,I-10",
+      "outputs": "I-07,I-08,I-11",
+      "owned_state": "p^n,v^n,q^n_b,b_a^b,b_g^b,P and evidence ledger",
+      "dependencies": "Eigen; C-20",
+      "failure_behaviour": "Reject invalid dt/evidence; surface numeric fault; no state repair that hides defects",
+      "execution_environment": "Portable C++20",
+      "classification": "production",
+      "proposed_owner_role": "R1 navigation lead",
+      "required_tests": "S2 unit; finite difference; C++/NumPy parity; fuzz/property",
+      "current_evidence_status": "S2 bounded mathematical behaviour accepted; real-phone drift unproved",
+      "interfaces_consumed": [
+        "I-03",
+        "I-05",
+        "I-12",
+        "I-09",
+        "I-10"
+      ],
+      "interfaces_provided": [
+        "I-07",
+        "I-08",
+        "I-11"
+      ]
+    },
+    {
+      "component_id": "C-08",
+      "name": "Learned-correction adapter",
+      "purpose": "Run an optional bounded model and decide whether its proposal is eligible.",
+      "responsibilities": "Window/mask/normalize; deadline; OOD/range checks; shadow mode; provenance; never mutate raw evidence.",
+      "inputs": "I-03,I-04,I-06,I-07,I-19",
+      "outputs": "I-09,I-10",
+      "owned_state": "Window buffer, runtime/model identity and counters",
+      "dependencies": "ONNX Runtime Mobile provisional; C-20",
+      "failure_behaviour": "Reject/timeout and continue classical baseline",
+      "execution_environment": "Android runtime + offline parity",
+      "classification": "production experimental",
+      "proposed_owner_role": "R3 ML modelling",
+      "required_tests": "Golden tensors; timeout/OOD; disabled-model baseline; export parity",
+      "current_evidence_status": "S4 unexecuted; IO-VNBD private experiment permitted conditionally",
+      "interfaces_consumed": [
+        "I-03",
+        "I-04",
+        "I-06",
+        "I-07",
+        "I-19"
+      ],
+      "interfaces_provided": [
+        "I-09",
+        "I-10"
+      ]
+    },
+    {
+      "component_id": "C-09",
+      "name": "GNSS integrity and reacquisition controller",
+      "purpose": "Convert one provenance-preserving location family into canonical gated updates and controlled return.",
+      "responsibilities": "Quality state; covariance floors; outage hysteresis; consume evidence once; dwell/consistency on return.",
+      "inputs": "I-02,I-07,I-08,I-04",
+      "outputs": "I-12,I-13,I-14,I-15",
+      "owned_state": "GNSS availability and reacquisition state",
+      "dependencies": "C-20",
+      "failure_behaviour": "Reject inconsistent/stale fixes; remain DR/degraded; never privilege first return",
+      "execution_environment": "Android/Kotlin policy + C++ gate",
+      "classification": "production",
+      "proposed_owner_role": "R1 navigation lead",
+      "required_tests": "Biased/intermittent return; duplicate ID; stale fix; state-machine fixtures",
+      "current_evidence_status": "S2 single-update gate accepted; thresholds provisional",
+      "interfaces_consumed": [
+        "I-02",
+        "I-07",
+        "I-08",
+        "I-04"
+      ],
+      "interfaces_provided": [
+        "I-12",
+        "I-13",
+        "I-14",
+        "I-15"
+      ]
+    },
+    {
+      "component_id": "C-10",
+      "name": "Road-graph store and top-K matcher",
+      "purpose": "Generate bounded directed-road hypotheses without overwriting navigation state.",
+      "responsibilities": "Verify graph manifest; spatial candidates; topology/direction/covariance scores; top-K; ambiguity and abstention.",
+      "inputs": "I-07,I-08,I-21",
+      "outputs": "I-10,I-11",
+      "owned_state": "Verified map version and previous same-version hypotheses",
+      "dependencies": "SQLite; S6B1 graph",
+      "failure_behaviour": "MISSING_MAP/NO_CANDIDATE/AMBIGUOUS; publish unmatched navigation",
+      "execution_environment": "Android worker + desktop oracle",
+      "classification": "production",
+      "proposed_owner_role": "R1 navigation lead + R4",
+      "required_tests": "S6 fixtures; determinism; version mismatch; false-clear negatives",
+      "current_evidence_status": "S6B1 deterministic graph and two route candidates accepted conditionally; runtime matcher unbuilt",
+      "interfaces_consumed": [
+        "I-07",
+        "I-08",
+        "I-21"
+      ],
+      "interfaces_provided": [
+        "I-10",
+        "I-11"
+      ]
+    },
+    {
+      "component_id": "C-11",
+      "name": "Navigation-state repository and output publisher",
+      "purpose": "Publish immutable scientific snapshots and separately derived display snapshots.",
+      "responsibilities": "Approximately 10 Hz output pacing; monotonic revision; no feedback from display smoothing; expose modes/provenance.",
+      "inputs": "I-07,I-08,I-11,I-13,I-15",
+      "outputs": "I-16",
+      "owned_state": "Latest snapshots and output sequence",
+      "dependencies": "C-20",
+      "failure_behaviour": "Hold last display only with STALE marker; scientific output invalid/stopped is explicit",
+      "execution_environment": "Android/Kotlin StateFlow",
+      "classification": "production",
+      "proposed_owner_role": "R5 Android/frontend",
+      "required_tests": "Rate; separation; stale/fault; process recreation",
+      "current_evidence_status": "Contract selected; integrated rate pending",
+      "interfaces_consumed": [
+        "I-07",
+        "I-08",
+        "I-11",
+        "I-13",
+        "I-15"
+      ],
+      "interfaces_provided": [
+        "I-16"
+      ]
+    },
+    {
+      "component_id": "C-12",
+      "name": "Replay provider and demo scenario controller",
+      "purpose": "Provide deterministic recorded input and software-only GNSS visibility control through live-compatible contracts.",
+      "responsibilities": "Replay ordering; speed/pause/seek restrictions; scenario masks; labels LIVE/REPLAY/SIMULATED_OUTAGE/DEMO.",
+      "inputs": "I-18,I-17",
+      "outputs": "I-01,I-02,I-14,I-17",
+      "owned_state": "Replay cursor and scenario definition",
+      "dependencies": "C-20",
+      "failure_behaviour": "Reject corrupt/incomplete sessions unless explicitly diagnostic; no silent repair",
+      "execution_environment": "Android demo + host",
+      "classification": "demo",
+      "proposed_owner_role": "R6 demo/validation/docs",
+      "required_tests": "Determinism; corrupted manifest; mask isolation; live/replay contract",
+      "current_evidence_status": "Architecture decision accepted; implementation pending",
+      "interfaces_consumed": [
+        "I-18",
+        "I-17"
+      ],
+      "interfaces_provided": [
+        "I-01",
+        "I-02",
+        "I-14",
+        "I-17"
+      ]
+    },
+    {
+      "component_id": "C-13",
+      "name": "Offline map and navigation UI",
+      "purpose": "Render local map, routes, scientific/reference traces, candidates, uncertainty and honest mode labels.",
+      "responsibilities": "MapLibre local PMTiles; attribution; UI state adaptation; after-run comparison; accessibility.",
+      "inputs": "I-16,I-17,I-21",
+      "outputs": "User display and UI events",
+      "owned_state": "Presentation state only",
+      "dependencies": "MapLibre+PMTiles provisional; C-11",
+      "failure_behaviour": "Show map unavailable and retain textual scientific state; never fake movement",
+      "execution_environment": "Android/Compose",
+      "classification": "demo+production UI",
+      "proposed_owner_role": "R5 Android/frontend + R6",
+      "required_tests": "Screenshot/accessibility; airplane mode; attribution; device renderer",
+      "current_evidence_status": "S6A foundation conditional; Android renderer not validated",
+      "interfaces_consumed": [
+        "I-16",
+        "I-17",
+        "I-21"
+      ],
+      "interfaces_provided": []
+    },
+    {
+      "component_id": "C-14",
+      "name": "Offline analyzer and evaluation harness",
+      "purpose": "Reproduce sessions and compute drift, latency, rate, integrity, map and resource metrics.",
+      "responsibilities": "Immutable input verification; endpoint/max/RMSE metrics; unmatched/matched/display separation; reports.",
+      "inputs": "I-18,I-19,I-21",
+      "outputs": "Versioned evaluation reports and experiment manifests",
+      "owned_state": "Read-only run registry",
+      "dependencies": "Python offline; C-20",
+      "failure_behaviour": "No metric on failed provenance/ground-truth checks",
+      "execution_environment": "Python host",
+      "classification": "offline",
+      "proposed_owner_role": "R4 testing/MLOps",
+      "required_tests": "Golden metrics; independent recomputation; malformed inputs",
+      "current_evidence_status": "S1 analyzer pattern verified; full integrated analyzer pending",
+      "interfaces_consumed": [
+        "I-18",
+        "I-19",
+        "I-21"
+      ],
+      "interfaces_provided": []
+    },
+    {
+      "component_id": "C-15",
+      "name": "IO-VNBD ingestion and feature firewall",
+      "purpose": "Privately ingest allowed IO-VNBD bytes, validate schemas/dedup/splits and prevent vehicle-label leakage.",
+      "responsibilities": "Pinned manifests; six-schema allowlist; parent-session split; runtime-feature audit; no raw public artifacts.",
+      "inputs": "I-20 and private dataset",
+      "outputs": "I-20; private tensors/labels",
+      "owned_state": "Private data inventory",
+      "dependencies": "Python offline",
+      "failure_behaviour": "Quarantine unknown schema/hash/unit; stop experiment",
+      "execution_environment": "Private offline workspace",
+      "classification": "offline",
+      "proposed_owner_role": "R2 dataset preparation",
+      "required_tests": "Schema/dedup/leakage/canary/future-GNSS tests",
+      "current_evidence_status": "S0 audit complete; status overridden to organizer-directed conditional private use",
+      "interfaces_consumed": [
+        "I-20"
+      ],
+      "interfaces_provided": [
+        "I-20"
+      ]
+    },
+    {
+      "component_id": "C-16",
+      "name": "Training and evaluation pipeline",
+      "purpose": "Train/ablate optional learned aids with journey-safe splits and frozen scenarios.",
+      "responsibilities": "Baselines; grouped splits; model/normalization provenance; evaluation; export candidate.",
+      "inputs": "I-20",
+      "outputs": "I-19 and private experiment records",
+      "owned_state": "Experiment registry",
+      "dependencies": "Python/PyTorch offline",
+      "failure_behaviour": "No export when leakage, rights, split or metric checks fail",
+      "execution_environment": "Private offline/controlled compute",
+      "classification": "offline",
+      "proposed_owner_role": "R3 ML modelling",
+      "required_tests": "Determinism; split isolation; baselines; ablations",
+      "current_evidence_status": "Experiment permitted conditionally; no performance executed",
+      "interfaces_consumed": [
+        "I-20"
+      ],
+      "interfaces_provided": [
+        "I-19"
+      ]
+    },
+    {
+      "component_id": "C-17",
+      "name": "Model packaging validator",
+      "purpose": "Prove exported model/runtime/normalization compatibility before Android inclusion.",
+      "responsibilities": "Hash model; schema/opset/runtime version; golden-vector parity; size/latency budget; redistribution flag.",
+      "inputs": "I-19",
+      "outputs": "Validated I-19",
+      "owned_state": "None",
+      "dependencies": "ONNX checker + Android harness",
+      "failure_behaviour": "Reject bundle; app runs model-disabled",
+      "execution_environment": "CI/private device",
+      "classification": "offline+production gate",
+      "proposed_owner_role": "R4 testing/MLOps + R3",
+      "required_tests": "Golden tensors; corrupt manifest; unsupported op; timeout",
+      "current_evidence_status": "Unexecuted S4",
+      "interfaces_consumed": [
+        "I-19"
+      ],
+      "interfaces_provided": [
+        "I-19"
+      ]
+    },
+    {
+      "component_id": "C-18",
+      "name": "Map and graph build tooling",
+      "purpose": "Rebuild display/graph artifacts from one frozen lawful PBF with lineage.",
+      "responsibilities": "Hash source; build PMTiles/SQLite; stable IDs; notices; fixtures and candidate routes.",
+      "inputs": "Frozen PBF and config",
+      "outputs": "I-21",
+      "owned_state": "Immutable build workspace",
+      "dependencies": "pyosmium/tile tooling pinned",
+      "failure_behaviour": "Abort on hash/tool/lineage mismatch",
+      "execution_environment": "Offline host/container",
+      "classification": "offline",
+      "proposed_owner_role": "R4 testing/MLOps",
+      "required_tests": "S6 deterministic build; graph schema/topology",
+      "current_evidence_status": "S6B1 graph built: 19/19 tests; PMTiles/device path pending",
+      "interfaces_consumed": [],
+      "interfaces_provided": [
+        "I-21"
+      ]
+    },
+    {
+      "component_id": "C-19",
+      "name": "Artifact and manifest validator",
+      "purpose": "Validate all distributable artifacts, notices, hashes, schemas and forbidden content.",
+      "responsibilities": "JSON/CSV/schema parsing; manifest hashes; clean extraction; secrets/private/raw-data checks.",
+      "inputs": "I-18,I-19,I-20,I-21 and release tree",
+      "outputs": "Release verification report",
+      "owned_state": "None",
+      "dependencies": "C-20",
+      "failure_behaviour": "Block merge/release",
+      "execution_environment": "CI/offline",
+      "classification": "offline",
+      "proposed_owner_role": "R4 testing/MLOps",
+      "required_tests": "Self-test fixtures; tamper detection",
+      "current_evidence_status": "Pattern proven by S6 manifests; repo implementation pending",
+      "interfaces_consumed": [
+        "I-18",
+        "I-19",
+        "I-20",
+        "I-21"
+      ],
+      "interfaces_provided": []
+    },
+    {
+      "component_id": "C-20",
+      "name": "Contracts and configuration package",
+      "purpose": "Version schemas, enums, units, frames, clock domains, validation and feature flags.",
+      "responsibilities": "JSON Schema/Proto definitions; generated bindings; compatibility tests; configuration identity.",
+      "inputs": "Architecture contracts",
+      "outputs": "I-01 through I-22 schemas",
+      "owned_state": "Schema registry",
+      "dependencies": "None",
+      "failure_behaviour": "Unknown major version rejected; incompatible change requires ADR",
+      "execution_environment": "Shared",
+      "classification": "production+demo+offline",
+      "proposed_owner_role": "R1 navigation lead + R4",
+      "required_tests": "Schema compatibility; codegen determinism; round-trip",
+      "current_evidence_status": "Conceptual contracts frozen by this baseline; implementation pending",
+      "interfaces_consumed": [],
+      "interfaces_provided": [
+        "I-01",
+        "I-02",
+        "I-03",
+        "I-04",
+        "I-05",
+        "I-06",
+        "I-07",
+        "I-08",
+        "I-09",
+        "I-10",
+        "I-11",
+        "I-12",
+        "I-13",
+        "I-14",
+        "I-15",
+        "I-16",
+        "I-17",
+        "I-18",
+        "I-19",
+        "I-20",
+        "I-21",
+        "I-22"
+      ]
+    }
+  ]
+}

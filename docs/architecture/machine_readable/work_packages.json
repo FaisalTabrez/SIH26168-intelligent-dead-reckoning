@@ -1,0 +1,330 @@
+{
+  "schema_version": 1,
+  "work_packages": [
+    {
+      "id": "WP-00",
+      "phase": "P0 Bootstrap",
+      "name": "Repository and governance scaffold",
+      "components": [
+        "C-19",
+        "C-20"
+      ],
+      "depends": [],
+      "evidence": [
+        "Architecture Revision 3"
+      ],
+      "classification": "bootstrap",
+      "acceptance": "Monorepo skeleton, owners, branch rules, generated-file policy and fast empty CI lanes exist; no production claim."
+    },
+    {
+      "id": "WP-01",
+      "phase": "P0 Bootstrap",
+      "name": "Contract/schema v1 implementation",
+      "components": [
+        "C-20"
+      ],
+      "depends": [
+        "WP-00"
+      ],
+      "evidence": [
+        "S2 canonical conventions"
+      ],
+      "classification": "production",
+      "acceptance": "All I-01..I-22 have machine schemas/enums, compatibility tests and generated bindings; S2 fields match exactly."
+    },
+    {
+      "id": "WP-02",
+      "phase": "P1 Foundations",
+      "name": "Import and harden Android acquisition",
+      "components": [
+        "C-01",
+        "C-02",
+        "C-03"
+      ],
+      "depends": [
+        "WP-01"
+      ],
+      "evidence": [
+        "S1 implementation"
+      ],
+      "classification": "production",
+      "acceptance": "Existing S1 path builds in monorepo; raw clocks/axes/provenance round-trip into verified sessions."
+    },
+    {
+      "id": "WP-03",
+      "phase": "P1 Foundations",
+      "name": "Canonical C++ core and JNI integration",
+      "components": [
+        "C-06",
+        "C-07"
+      ],
+      "depends": [
+        "WP-01"
+      ],
+      "evidence": [
+        "S2 accepted spike"
+      ],
+      "classification": "critical production",
+      "acceptance": "S2 tests and C++/NumPy parity pass; JNI batch fixture produces identical accepted/rejected evidence and state."
+    },
+    {
+      "id": "WP-04",
+      "phase": "P1 Foundations",
+      "name": "Deterministic replay backbone",
+      "components": [
+        "C-12",
+        "C-14"
+      ],
+      "depends": [
+        "WP-01",
+        "WP-02"
+      ],
+      "evidence": [
+        "S1 recording contract"
+      ],
+      "classification": "demo+verification",
+      "acceptance": "A public synthetic session replays deterministically through live-compatible input contracts with clear REPLAY label."
+    },
+    {
+      "id": "WP-05",
+      "phase": "P2 Physical gates",
+      "name": "Complete S1 physical-device protocol",
+      "components": [
+        "C-01",
+        "C-02",
+        "C-03"
+      ],
+      "depends": [
+        "WP-02"
+      ],
+      "evidence": [
+        "S1 protocol"
+      ],
+      "classification": "production evidence",
+      "acceptance": "Named device sessions and analyzer outputs adjudicate rate, gap, screen-off, battery and thermal gates without generalizing beyond devices."
+    },
+    {
+      "id": "WP-06",
+      "phase": "P2 Physical gates",
+      "name": "S3 alignment and mount-slip spike",
+      "components": [
+        "C-04",
+        "C-05"
+      ],
+      "depends": [
+        "WP-02",
+        "WP-03"
+      ],
+      "evidence": [
+        "S3 unresolved"
+      ],
+      "classification": "critical experiment",
+      "acceptance": "Predeclared controlled car tests select or reject a method; alignment covariance/status contract is exercised; failure disables dependent aids."
+    },
+    {
+      "id": "WP-07",
+      "phase": "P2 Core behaviour",
+      "name": "GNSS integrity/outage/reacquisition",
+      "components": [
+        "C-09",
+        "C-07"
+      ],
+      "depends": [
+        "WP-03",
+        "WP-04"
+      ],
+      "evidence": [
+        "S2 GNSS gate"
+      ],
+      "classification": "critical production",
+      "acceptance": "Good, biased, stale and intermittent return fixtures prove no first-fix privilege, evidence-once semantics and continuous typed modes."
+    },
+    {
+      "id": "WP-08",
+      "phase": "P2 Map",
+      "name": "Runtime graph store and top-K matcher",
+      "components": [
+        "C-10",
+        "C-18"
+      ],
+      "depends": [
+        "WP-01"
+      ],
+      "evidence": [
+        "S6B1"
+      ],
+      "classification": "production",
+      "acceptance": "Frozen S6B1 graph verifies, clear/ambiguous/off-road fixtures meet frozen logical gates, and matcher can abstain."
+    },
+    {
+      "id": "WP-09",
+      "phase": "P3 Demo shell",
+      "name": "Offline navigation UI and honest telemetry",
+      "components": [
+        "C-11",
+        "C-13"
+      ],
+      "depends": [
+        "WP-04",
+        "WP-08"
+      ],
+      "evidence": [
+        "S6A conditional"
+      ],
+      "classification": "demo-critical",
+      "acceptance": "Airplane-mode replay shows local map, traces, uncertainty, candidates and mandatory mode labels; attribution visible."
+    },
+    {
+      "id": "WP-10",
+      "phase": "P2 Data",
+      "name": "Private IO-VNBD ingestion and leakage firewall",
+      "components": [
+        "C-15"
+      ],
+      "depends": [
+        "WP-00"
+      ],
+      "evidence": [
+        "S0 audit; organizer-directed use"
+      ],
+      "classification": "offline private",
+      "acceptance": "Pinned private subset manifest, six-schema handling, dedup/group split and runtime-vs-label canary checks pass; no raw bytes enter repo."
+    },
+    {
+      "id": "WP-11",
+      "phase": "P3 ML experiment",
+      "name": "Classical baselines and bounded learned aid",
+      "components": [
+        "C-16"
+      ],
+      "depends": [
+        "WP-10",
+        "WP-14"
+      ],
+      "evidence": [
+        "S0 conditional; S4 pending"
+      ],
+      "classification": "offline experimental",
+      "acceptance": "Matched baseline/ablation on frozen split and masks; results labelled exploratory; no claim or release beyond rights/evidence."
+    },
+    {
+      "id": "WP-12",
+      "phase": "P4 ML runtime",
+      "name": "Model export and Android shadow mode",
+      "components": [
+        "C-08",
+        "C-17"
+      ],
+      "depends": [
+        "WP-03",
+        "WP-11"
+      ],
+      "evidence": [
+        "S4"
+      ],
+      "classification": "optional production experiment",
+      "acceptance": "Golden parity, deadline/OOD/bounds and disabled fallback pass; shadow-mode decisions logged before influence is enabled."
+    },
+    {
+      "id": "WP-13",
+      "phase": "P3 Evaluation",
+      "name": "Integrated analyzer and claim firewall",
+      "components": [
+        "C-14",
+        "C-19"
+      ],
+      "depends": [
+        "WP-03",
+        "WP-07",
+        "WP-08"
+      ],
+      "evidence": [
+        "Requirements; S0/S1/S2/S6"
+      ],
+      "classification": "verification",
+      "acceptance": "Reports separate raw INS, fused, matched, display and reference; compute endpoint/max/RMSE/rates/transitions and reject invalid provenance."
+    },
+    {
+      "id": "WP-14",
+      "phase": "P3 Classical baseline",
+      "name": "Calibration/constraints classical baseline",
+      "components": [
+        "C-04",
+        "C-05",
+        "C-07"
+      ],
+      "depends": [
+        "WP-03",
+        "WP-06"
+      ],
+      "evidence": [
+        "S2; S3"
+      ],
+      "classification": "critical production",
+      "acceptance": "Model-disabled car replay/live path produces bounded typed outputs; alignment-dependent constraints are gated and ablatable."
+    },
+    {
+      "id": "WP-15",
+      "phase": "P4 Demo integration",
+      "name": "Ten-event deterministic demonstration",
+      "components": [
+        "C-07",
+        "C-09",
+        "C-10",
+        "C-11",
+        "C-12",
+        "C-13"
+      ],
+      "depends": [
+        "WP-07",
+        "WP-08",
+        "WP-09",
+        "WP-13",
+        "WP-14"
+      ],
+      "evidence": [
+        "Demo contract"
+      ],
+      "classification": "demo-critical",
+      "acceptance": "Script shows valid GNSS, simulated outage, turn, uncertainty growth, candidates, biased-return rejection, credible acceptance, smooth display recovery and after-run comparison."
+    },
+    {
+      "id": "WP-16",
+      "phase": "P5 Edge deliverable",
+      "name": "External IMU adapter and rate profiling",
+      "components": [
+        "C-06",
+        "C-07",
+        "C-20"
+      ],
+      "depends": [
+        "WP-03"
+      ],
+      "evidence": [
+        "DEL-002; UNK-008/009"
+      ],
+      "classification": "production",
+      "acceptance": "Documented adapter replays external-format data; input/propagation/output rates reported separately; no universal 200 Hz claim."
+    },
+    {
+      "id": "WP-17",
+      "phase": "P6 Release",
+      "name": "Release verification and field rehearsal",
+      "components": [
+        "C-19",
+        "C-02",
+        "C-13"
+      ],
+      "depends": [
+        "WP-05",
+        "WP-15",
+        "WP-16"
+      ],
+      "evidence": [
+        "All gates"
+      ],
+      "classification": "release",
+      "acceptance": "Clean build/install, network-isolated replay/live rehearsal, privacy/licence/secret scan and artifact hashes pass; field route separately approved or replay-only."
+    }
+  ]
+}

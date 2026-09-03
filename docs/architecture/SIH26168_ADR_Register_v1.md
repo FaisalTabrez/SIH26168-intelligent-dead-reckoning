@@ -1,0 +1,25 @@
+# SIH26168 ADR Register v1
+
+| ADR | Decision | Status | Decision | Alternatives/rationale | Exit/revisit rule |
+| --- | --- | --- | --- | --- | --- |
+| ADR-001 | Monorepo | Accepted | One repository for Android, C++, Python, schemas, fixtures and docs; private data remains external. | Polyrepo adds version/contract coordination cost for six people. | Revisit only if access boundaries require a separate private data repo. |
+| ADR-002 | Canonical navigation frames | Accepted | S2 fixed local NED, physical IMU body, active q^n_b scalar-first. | Vehicle-frame state from Rev2 superseded. | S2 authority. |
+| ADR-003 | Error-state convention | Accepted | 15-state right-multiplicative S2 ESKF with exact reset/Joseph update. | No redesign without unavoidable integration conflict. | S2 authority. |
+| ADR-004 | Android acquisition APIs | Accepted | SensorManager + named LocationManager GPS provider in user-started location FGS; no mandatory Play Services. | FLP may be optional later; activity-owned sampling rejected. | S1 physical matrix pending. |
+| ADR-005 | Raw evidence format | Accepted | Append-only JSONL chunks, source+arrival clocks, atomic JSON manifest and ZIP export. | Protobuf-only/database rewrite deferred pending measured need. | S1 implementation lineage. |
+| ADR-006 | C++/Kotlin boundary | Accepted | Portable C++20 S2 core, batch direct-buffer JNI, one serial executor. | Kotlin core and per-sample JNI rejected. | Edge reuse and S2 parity. |
+| ADR-007 | Python boundary | Accepted | Offline-only data, training, map build, analyzer and oracle. | Embedded Python rejected. | No Python Android dependency. |
+| ADR-008 | Learned-correction safety | Accepted | Optional proposal/decision with covariance, bounds, timeout, OOD, shadow mode and classical fallback. | End-to-end pose replacement rejected. | S4 performance remains experimental. |
+| ADR-009 | On-device model runtime | Experimental | ONNX + ONNX Runtime Mobile adapter candidate. | LiteRT fallback; custom runtime rejected. | Freeze after S4 ops/size/latency/parity. |
+| ADR-010 | Offline display map | Provisional | Local PMTiles v3 + MapLibre with local style/assets and OSM attribution. | Mapsforge fallback; Google/public tile caching rejected. | Freeze after device/licence gates. |
+| ADR-011 | Directed road graph | Accepted | S6B1 versioned directed SQLite graph from frozen PBF and stable lineage. | Full routing engine deferred. | Field/legal tags not treated as truth. |
+| ADR-012 | Top-K map matching | Provisional | Team-owned bounded candidate scorer with ambiguity/abstention; FMM desktop oracle only. | Nearest-road hard snap rejected. | Numerical gates need predeclared execution. |
+| ADR-013 | GNSS outage simulation | Accepted | Software hides selected GNSS fields from estimator after raw retention; no RF interference. | Mock-location/jamming rejected. | Scenario manifest required. |
+| ADR-014 | Reacquisition policy | Provisional | Candidate-return state, S2 innovation gate, repeated consistency/dwell; first fix has no privilege. | Immediate reset rejected. | Thresholds await fixtures/device evidence. |
+| ADR-015 | Demo replay provider | Accepted | Replay implements live-compatible consumer contracts and same scientific pipeline. | Fake server/backend rejected. | Permanent labels and immutable scenarios. |
+| ADR-016 | Dataset handling | Accepted | Organizer-directed private IO-VNBD use; raw/extracts excluded public; feature firewall; release rights conditional. | Public availability is not a licence. | Written permission before redistribution/weights. |
+| ADR-017 | Privacy recordings | Accepted | App-private, explicit export, private storage, public synthetic fixtures only. | Automatic cloud upload rejected. | Retention decision remains open. |
+| ADR-018 | CI strategy | Accepted | Fast public synthetic PR lanes; heavy/private/device jobs scheduled/manual; no IO-VNBD download in public CI. | All-heavy PR CI rejected. | Compute budget monitored. |
+| ADR-019 | Release manifests | Accepted | Hash/schema/licence/SBOM/build identities and clean extraction gate every release. | Manual undocumented packaging rejected. | C-19 owner. |
+| ADR-020 | Backend/server infrastructure | Accepted | No Redis, API gateway, microservices or server database; navigation works network-isolated. | Local replay provider supplies demo data. | Future noncritical services require ADR. |
+| ADR-021 | Revision 2 M5/M8 ownership | Superseded | Replace split ownership with single S2 C-07 core owner. | Preserves exact S2 conventions. | All new issues use C-IDs, not obsolete M5/M8 semantics. |

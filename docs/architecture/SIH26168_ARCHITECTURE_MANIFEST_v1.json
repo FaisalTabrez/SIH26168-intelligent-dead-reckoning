@@ -1,0 +1,148 @@
+{
+  "schema_version": 1,
+  "artifact": "SIH26168_Architecture_Revision3_Working_Baseline",
+  "architecture_status": "ARCH3-READY-FOR-REPOSITORY-BOOTSTRAP",
+  "generated_date": "2026-09-02",
+  "hash_algorithm": "SHA-256",
+  "manifest_scope": "Every package file except this self-referential manifest.",
+  "source_inputs": [
+    "SIH26168_Requirements_Baseline_v1.1",
+    "CANONICAL_CONVENTIONS",
+    "S1_Android_Acquisition_Report",
+    "S6A_Offline_Map_Foundation_Decision_v1",
+    "S6B1_ARTIFACT_MANIFEST_v1",
+    "SIH26168_High_Level_Architecture_Revision2",
+    "SIH26168_Module_Technical_Design",
+    "SIH26168_Open_Source_Reuse_Research_v1",
+    "SIH26168_IO_VNBD_Dataset_Feasibility_Audit_v1.1",
+    "IO-VNBD public author repository (source-description evidence only)"
+  ],
+  "excluded_sensitive_content": [
+    "raw IO-VNBD bytes/extracts",
+    "private location recordings",
+    "credentials/secrets",
+    "unapproved dataset-derived weights",
+    "final field route selection"
+  ],
+  "files": [
+    {
+      "path": "README.md",
+      "size_bytes": 3426,
+      "sha256": "8992f59da93b6b724e6fa77579fa791c8060b6824bff6a6afe10b0d98a5c4316",
+      "role": "entrypoint and decision summary",
+      "classification": "generated from supplied authoritative inputs and reconciliation decisions"
+    },
+    {
+      "path": "SIH26168_ADR_Register_v1.md",
+      "size_bytes": 4598,
+      "sha256": "769d3197275652ac248e135bc9951e299a9aefd7dc46cecd567dd0b79103546b",
+      "role": "architecture decision register",
+      "classification": "generated from supplied authoritative inputs and reconciliation decisions"
+    },
+    {
+      "path": "SIH26168_Component_Register_v1.csv",
+      "size_bytes": 12019,
+      "sha256": "ff3ab179c462a690c7dec194d13efea84eee103bfeeb374263c954f50e491544",
+      "role": "machine-readable component register",
+      "classification": "generated from supplied authoritative inputs and reconciliation decisions"
+    },
+    {
+      "path": "SIH26168_Demo_Architecture_v1.md",
+      "size_bytes": 3171,
+      "sha256": "6fba94a27371d1d1b8adc87488eac4474441d84bb71ba872a05ef54300fd4cfa",
+      "role": "honest live/replay demonstration design",
+      "classification": "generated from supplied authoritative inputs and reconciliation decisions"
+    },
+    {
+      "path": "SIH26168_Development_Design_Baseline_v1.md",
+      "size_bytes": 12221,
+      "sha256": "3588408527381a7473f34dda9307e89f0a5dce86ac4f0adfb6475634e0039300",
+      "role": "runtime, state, failure and engineering design",
+      "classification": "generated from supplied authoritative inputs and reconciliation decisions"
+    },
+    {
+      "path": "SIH26168_Development_Sequence_v1.md",
+      "size_bytes": 6476,
+      "sha256": "3b6130b404093f0619bc4345b88b3e7e6502730dd9c53c97e9aff88815a61aad",
+      "role": "dependency phases and issue-ready work packages",
+      "classification": "generated from supplied authoritative inputs and reconciliation decisions"
+    },
+    {
+      "path": "SIH26168_High_Level_Architecture_Revision3.md",
+      "size_bytes": 22389,
+      "sha256": "958b16784079a4fdc71f60b1188fc24a6da01d36a08ed46f16f68c336c11bd04",
+      "role": "normative high-level architecture",
+      "classification": "generated from supplied authoritative inputs and reconciliation decisions"
+    },
+    {
+      "path": "SIH26168_Interface_Inventory_v1.md",
+      "size_bytes": 13438,
+      "sha256": "a30e9f6ca85e230dd440e4aa23054896b1fb08f3d08ac6f9b799b5b5dcd9b4fb",
+      "role": "versioned conceptual interface contracts",
+      "classification": "generated from supplied authoritative inputs and reconciliation decisions"
+    },
+    {
+      "path": "SIH26168_Open_Decisions_v1.md",
+      "size_bytes": 3002,
+      "sha256": "6d2e6e3f611a338f1a2e979e5fec4543abaa050fad485c9824fa505f6ab020d3",
+      "role": "unresolved decision register",
+      "classification": "generated from supplied authoritative inputs and reconciliation decisions"
+    },
+    {
+      "path": "SIH26168_Repository_Blueprint_v1.md",
+      "size_bytes": 4462,
+      "sha256": "0bd7936c5c6fa92c295c7d0e91a3da6b0a39e2cfa2b715bd240c611e3b91aa4e",
+      "role": "monorepo, ownership and artifact policy",
+      "classification": "generated from supplied authoritative inputs and reconciliation decisions"
+    },
+    {
+      "path": "SIH26168_Risk_Register_v1.csv",
+      "size_bytes": 4812,
+      "sha256": "af2168dfb162450a7f3f219a8bc2a4b6d8f06b13bce8bb11977112e6031e75ab",
+      "role": "risk register",
+      "classification": "generated from supplied authoritative inputs and reconciliation decisions"
+    },
+    {
+      "path": "SIH26168_Verification_Strategy_v1.md",
+      "size_bytes": 4503,
+      "sha256": "eb29326040fccf634df8fde82bb1115427d86599a34a687dd01c259a62072f7f",
+      "role": "test and CI strategy",
+      "classification": "generated from supplied authoritative inputs and reconciliation decisions"
+    },
+    {
+      "path": "machine_readable/architecture_status.json",
+      "size_bytes": 36724,
+      "sha256": "d914ffc489ce76bc59e8155cf4426f86ce14d9bb8e9cec5ee4921ef62d39a02d",
+      "role": "status and requirement coverage",
+      "classification": "generated from supplied authoritative inputs and reconciliation decisions"
+    },
+    {
+      "path": "machine_readable/components.json",
+      "size_bytes": 22066,
+      "sha256": "30b0bb25d196fbd04d8ba58f01ce0fe72158a5a20ef4d6e29b56690d6866f3a9",
+      "role": "component records",
+      "classification": "generated from supplied authoritative inputs and reconciliation decisions"
+    },
+    {
+      "path": "machine_readable/interfaces.json",
+      "size_bytes": 20460,
+      "sha256": "6d723e20b6e2e26809e22848a177dea99756f6d1676a763521b53839803091ed",
+      "role": "interface records",
+      "classification": "generated from supplied authoritative inputs and reconciliation decisions"
+    },
+    {
+      "path": "machine_readable/risks.json",
+      "size_bytes": 9633,
+      "sha256": "ccb436e9844d6495a692a5a7f48d8189f89dd60bf88f1313fdf8cfe567d3547d",
+      "role": "risk records",
+      "classification": "generated from supplied authoritative inputs and reconciliation decisions"
+    },
+    {
+      "path": "machine_readable/work_packages.json",
+      "size_bytes": 8999,
+      "sha256": "cc8730598fe0af83e1a7eead26185c170d499a82caaf3e0232dcce993435ad48",
+      "role": "work-package records",
+      "classification": "generated from supplied authoritative inputs and reconciliation decisions"
+    }
+  ]
+}
