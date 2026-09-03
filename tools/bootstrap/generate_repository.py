@@ -256,6 +256,40 @@ OWNERS = {
     "WP-17": ("R1/R4", "akhileshkancharla", "FaisalTabrez", "submission"),
 }
 
+CHILD_ASSIGNMENT_OVERRIDES = {
+    "WP-00.2": ("R2", "FaisalTabrez", "akhileshkancharla"),
+    "WP-00.3": ("R2", "FaisalTabrez", "akhileshkancharla"),
+    "WP-00.4": ("R2", "FaisalTabrez", "akhileshkancharla"),
+    "WP-00.5": ("R2", "FaisalTabrez", "akhileshkancharla"),
+    "WP-00.6": ("R2", "FaisalTabrez", "akhileshkancharla"),
+    "WP-01.1": ("R2", "FaisalTabrez", "akhileshkancharla"),
+    "WP-01.2": ("R2", "FaisalTabrez", "akhileshkancharla"),
+    "WP-01.3": ("R2", "FaisalTabrez", "akhileshkancharla"),
+    "WP-01.4": ("R2", "FaisalTabrez", "akhileshkancharla"),
+    "WP-01.5": ("R2", "FaisalTabrez", "akhileshkancharla"),
+    "WP-01.6": ("R2", "FaisalTabrez", "akhileshkancharla"),
+    "WP-03.2": ("R2", "FaisalTabrez", "akhileshkancharla"),
+    "WP-04.1": ("R2", "FaisalTabrez", "akhileshkancharla"),
+    "WP-04.5": ("R2", "FaisalTabrez", "akhileshkancharla"),
+    "WP-04.6": ("R2", "FaisalTabrez", "akhileshkancharla"),
+    "WP-07.5": ("R2", "FaisalTabrez", "akhileshkancharla"),
+    "WP-08.1": ("R2", "FaisalTabrez", "akhileshkancharla"),
+    "WP-08.2": ("R2", "FaisalTabrez", "akhileshkancharla"),
+    "WP-08.3": ("R2", "FaisalTabrez", "akhileshkancharla"),
+    "WP-08.4": ("R2", "FaisalTabrez", "akhileshkancharla"),
+    "WP-08.5": ("R2", "FaisalTabrez", "akhileshkancharla"),
+    "WP-08.6": ("R2", "FaisalTabrez", "akhileshkancharla"),
+    "WP-13.1": ("R2", "FaisalTabrez", "akhileshkancharla"),
+    "WP-13.2": ("R2", "FaisalTabrez", "akhileshkancharla"),
+    "WP-13.3": ("R2", "FaisalTabrez", "akhileshkancharla"),
+    "WP-13.5": ("R2", "FaisalTabrez", "akhileshkancharla"),
+    "WP-13.6": ("R2", "FaisalTabrez", "akhileshkancharla"),
+    "WP-16.1": ("R2", "FaisalTabrez", "akhileshkancharla"),
+    "WP-16.2": ("R2", "FaisalTabrez", "akhileshkancharla"),
+    "WP-16.4": ("R2", "FaisalTabrez", "akhileshkancharla"),
+    "WP-17.2": ("R2", "FaisalTabrez", "akhileshkancharla"),
+}
+
 MILESTONES = [
     ("M0 — Repository Ready", "2026-09-03T14:30:00Z", "WP-00 complete by 20:00 IST"),
     ("M1 — Submission Contracts", "2026-09-05T18:29:59Z", "Contracts, narrative and wireframes"),
@@ -328,13 +362,18 @@ def issue_rows() -> list[dict[str, str]]:
             issue_id = f"{wp}.{index}"
             critical = issue_id in CRITICAL_DATES
             operations = issue_id in {"WP-02.1", "WP-02.4", "WP-02.5", "WP-05.1", "WP-05.2", "WP-05.3", "WP-05.4", "WP-06.5", "WP-10.1", "WP-10.2", "WP-10.3", "WP-10.4", "WP-13.4", "WP-16.3", "WP-17.1", "WP-17.3", "WP-17.4", "WP-17.5", "WP-17.6", "WP-17.7"}
-            intended = "mjunaidqureshimct255a1405-art" if operations else assignee
+            if issue_id in CHILD_ASSIGNMENT_OVERRIDES:
+                child_owner_role, intended, child_reviewer = CHILD_ASSIGNMENT_OVERRIDES[issue_id]
+            elif operations:
+                child_owner_role, intended, child_reviewer = "OPS-1", "mjunaidqureshimct255a1405-art", reviewer
+            else:
+                child_owner_role, intended, child_reviewer = owner_role, assignee, reviewer
             rows.append({
                 "Issue number": "", "Parent": wp, "WP ID": issue_id,
                 "Title": f"[{issue_id}] {title}", "Milestone": milestone_for(issue_id),
                 "Submission-critical flag": "yes" if critical else "no",
-                "Owner role": "OPS-1" if operations else owner_role, "Intended assignee": intended, "Actual assignee": "",
-                "Reviewer": reviewer, "Priority": "critical" if critical else "high",
+                "Owner role": child_owner_role, "Intended assignee": intended, "Actual assignee": "",
+                "Reviewer": child_reviewer, "Priority": "critical" if critical else "high",
                 "Area": area, "Status": "status:backlog", "Dependencies": f"Parent {wp}; architecture dependency graph",
                 "Evidence required": "yes", "Due date": CRITICAL_DATES.get(issue_id, ""), "URL": "",
             })
@@ -677,9 +716,9 @@ def governance_files() -> None:
     * @akhileshkancharla @FaisalTabrez
     /core/ @akhileshkancharla @FaisalTabrez
     /contracts/ @akhileshkancharla @FaisalTabrez
-    /.github/workflows/ @akhileshkancharla @FaisalTabrez
+    /.github/workflows/ @FaisalTabrez @akhileshkancharla
     /.github/CODEOWNERS @akhileshkancharla @FaisalTabrez
-    /ci/ @akhileshkancharla @FaisalTabrez
+    /ci/ @FaisalTabrez @akhileshkancharla
     /docs/architecture/ @akhileshkancharla @FaisalTabrez
     /tools/analyzer/ @akhileshkancharla @FaisalTabrez
     /tools/dataset/ @FaisalTabrez @akhileshkancharla
@@ -731,8 +770,8 @@ A claim requires an immutable evidence reference, method, scope, reviewer, and l
 
 | Role | Member | Authority |
 |---|---|---|
-| R1/R4 | Akhilesh Kancharla (`@akhileshkancharla`) | Architecture, core, CI, analyzer, scientific evidence and release approval |
-| R2 | Md. Faisal Tabrez (`@FaisalTabrez`) | Dataset engineering, leakage control and general closure approval |
+    | R1/R4 | Akhilesh Kancharla (`@akhileshkancharla`) | Architecture, core, analyzer, scientific evidence, CI/CD review and release approval |
+    | R2 | Md. Faisal Tabrez (`@FaisalTabrez`) | CI/CD ownership, repository automation, dataset engineering, leakage control and general closure approval |
 | R3 | Zeeshan Ahmed Khan (`@Zeeshan1786`) | ML baselines, training, evaluation, export and shadow mode |
 | R5 | Likhitha Yepalagunta (`@likhithayepalagunta-19`) | Android acquisition, integration, UI and map display |
 | R6 | Era Garg (`@eragarg`) | Demo, documentation, PPT, video and presentation |
@@ -831,7 +870,13 @@ def bootstrap_registers() -> None:
     for wp, (role, intended, reviewer, area) in OWNERS.items():
         assignment_rows.append({"WP": wp, "Owner role": role, "Intended assignee": intended, "Actual assignee": "pending invitation/verification", "Reviewer": reviewer, "Area": area})
     write_csv("docs/bootstrap/TEAM_ASSIGNMENT_MATRIX.csv", assignment_rows, list(assignment_rows[0]))
-    write("docs/bootstrap/TEAM_ASSIGNMENT_MATRIX.md", "# Team Assignment Matrix\n\nThe CSV beside this document is authoritative for machine-readable bootstrap assignment intent. Actual assignment is never inferred before GitHub confirms collaborator access.")
+    write("docs/bootstrap/TEAM_ASSIGNMENT_MATRIX.md", """
+    # Team Assignment Matrix
+
+    The CSV beside this document is authoritative for machine-readable bootstrap assignment intent. Actual assignment is never inferred before GitHub confirms collaborator access.
+
+    WP-level scientific and product authority remains in the CSV. To balance execution workload, 31 bounded child issues are delegated to Faisal under R2 while Akhilesh retains review authority: `WP-00.2`–`WP-00.6`, `WP-01.1`–`WP-01.6`, `WP-03.2`, `WP-04.1`, `WP-04.5`, `WP-04.6`, `WP-07.5`, `WP-08.1`–`WP-08.6`, `WP-13.1`, `WP-13.2`, `WP-13.3`, `WP-13.5`, `WP-13.6`, `WP-16.1`, `WP-16.2`, `WP-16.4`, and `WP-17.2`.
+    """)
     write("docs/bootstrap/REPOSITORY_RULES.md", """
     # Repository Rules
 
@@ -854,12 +899,12 @@ def bootstrap_registers() -> None:
     write("docs/bootstrap/NEXT_ACTIONS.md", """
     # Next Actions
 
-    - Akhilesh: approve contracts and protect `main` after initial checks succeed.
-    - Faisal: accept access, review architecture/contract changes, and establish the private dataset workspace outside Git.
-    - Zeeshan: accept access and prepare deterministic offline ML plans without claiming results.
-    - Likhitha: accept access and begin submission-critical Android/replay tasks from assigned issues.
-    - Era: accept access and begin narrative, wireframe, PPT, and video-planning issues.
-    - Junaid: accept access and execute only bounded operational issues with frozen commands and stop conditions.
+    - Akhilesh: obtain Project-v2 OAuth scopes or complete the documented manual project setup; review CI/CD and delegated R2 work, and triage the September 3–8 critical path.
+    - Faisal: execute the 31 delegated governance, CI/CD, contract, map-support, analyzer/evidence, replay-fixture, adapter and release child issues; retain the existing private-data responsibilities and escalate scientific decisions to Akhilesh.
+    - Zeeshan: prepare deterministic offline ML plans without claiming results or beginning dependency-blocked implementation.
+    - Likhitha: begin only Ready submission-critical Android/replay issues, keeping dependency-blocked work in Backlog or Blocked.
+    - Era: accept the pending invitation, then begin the narrative, wireframe, PPT, and video-planning issues.
+    - Junaid: execute only bounded operational issues after task-specific commands are frozen and approved.
     """)
     write("docs/bootstrap/PROJECT_MANUAL_SETUP.md", """
     # GitHub Project Manual Setup
@@ -967,7 +1012,7 @@ def workflows() -> None:
             if (!/Relates to #\d+/i.test(text)) core.setFailed('A Relates to #123 reference is required.');
 """
     write(".github/workflows/pull-request-governance.yml", pr_gov)
-    sensitive = workflow_header("Sensitive review", "  pull_request:\n    types: [opened, synchronize, reopened, ready_for_review, review_submitted]", "contents: read\n  pull-requests: read") + fr"""jobs:
+    sensitive = workflow_header("Sensitive review", "  pull_request:\n    types: [opened, synchronize, reopened, ready_for_review]\n  pull_request_review:\n    types: [submitted, dismissed]", "contents: read\n  pull-requests: read") + fr"""jobs:
   sensitive-review-check:
     runs-on: ubuntu-latest
     steps:
@@ -1161,6 +1206,9 @@ def verification_scripts() -> None:
             for line in value.splitlines():
                 if "uses:" in line and not re.search(r"@[0-9a-f]{40}(?:\s+#|\s*$)",line): errors.append(f"mutable action reference: {p.name}: {line.strip()}")
             if not re.search(r"(?m)^permissions:\s*$",value): errors.append(f"permissions missing: {p.name}")
+        sensitive=text(ROOT/".github/workflows/sensitive-review.yml")
+        if "pull_request_review:" not in sensitive or "types: [submitted, dismissed]" not in sensitive: errors.append("sensitive review must run when reviews are submitted or dismissed")
+        if "review_submitted" in sensitive: errors.append("invalid pull_request review_submitted activity type")
     checks={"policy":policy,"forbidden":forbidden,"secrets":secrets,"markdown":markdown,"links":links,"json":json_check,"csv":csv_check,"contracts":contracts,"manifest":manifest,"actions":actions}
     selected=sys.argv[1] if len(sys.argv)>1 else "all"; errors=[]
     if selected=="all":
