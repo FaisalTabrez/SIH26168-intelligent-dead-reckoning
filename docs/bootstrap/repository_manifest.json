@@ -1,0 +1,161 @@
+{
+  "schema_version": 1,
+  "scope": "Bootstrap and immutable Architecture Revision 3 artifacts; manifest excludes itself.",
+  "files": [
+    {
+      "path": "docs/bootstrap/ISSUE_REGISTER.csv",
+      "size_bytes": 29920,
+      "sha256": "0e8afed5e5d6a672ecf37e227bf0efebc9dfe7908d2a4d83ed64ec2fb3271445"
+    },
+    {
+      "path": "docs/bootstrap/KNOWN_LIMITATIONS.md",
+      "size_bytes": 469,
+      "sha256": "90bc234ea74e195fae3fdfd92b41f1b8b8145be54ebdcb4cb735777528ac3e7b"
+    },
+    {
+      "path": "docs/bootstrap/LABEL_REGISTER.csv",
+      "size_bytes": 4222,
+      "sha256": "58501ed24ef22c59b0f8353400bc637b39739aa84edb710759a6d54521e1cc86"
+    },
+    {
+      "path": "docs/bootstrap/MILESTONE_REGISTER.csv",
+      "size_bytes": 1348,
+      "sha256": "cbcc28e83a2c0b98979ad7f346160e91739c7b0e312981eebe72a40209bd4376"
+    },
+    {
+      "path": "docs/bootstrap/NEXT_ACTIONS.md",
+      "size_bytes": 603,
+      "sha256": "b6f33402d9708a9e1c06242dc6fb1c3186359e151c5d78fc8604d19dce374040"
+    },
+    {
+      "path": "docs/bootstrap/PROJECT_MANUAL_SETUP.md",
+      "size_bytes": 332,
+      "sha256": "db05967002af189acafddd5ad993c6a2b47bf56bce2af251733e4d2e8e19b052"
+    },
+    {
+      "path": "docs/bootstrap/REPOSITORY_BOOTSTRAP_REPORT.md",
+      "size_bytes": 270,
+      "sha256": "aa7644486c19c998aeb5e96b696a03735853c0d559577063f90bf13da88d87b3"
+    },
+    {
+      "path": "docs/bootstrap/REPOSITORY_RULES.md",
+      "size_bytes": 418,
+      "sha256": "92d219459c3dcd99a4863e85f775bf7cdb8733b7cee2ade81d1dc050c2b983f4"
+    },
+    {
+      "path": "docs/bootstrap/SUBMISSION_CRITICAL_PATH.md",
+      "size_bytes": 337,
+      "sha256": "c33ea5bfc38c3205d3c6f78b6b71561666ee7ee81eb4290a6aa066d88f89e92b"
+    },
+    {
+      "path": "docs/bootstrap/TEAM_ASSIGNMENT_MATRIX.csv",
+      "size_bytes": 1555,
+      "sha256": "3c4f53e87dd5cd0907fa16f6b53838b92aae751b234a4d9c3c97a201ffaf2c14"
+    },
+    {
+      "path": "docs/bootstrap/TEAM_ASSIGNMENT_MATRIX.md",
+      "size_bytes": 202,
+      "sha256": "436e210aab05f8ee507c95038af1d94777b537a36846c688dfc900d20d35c90e"
+    },
+    {
+      "path": "docs/bootstrap/WORKFLOW_REGISTER.csv",
+      "size_bytes": 1350,
+      "sha256": "0816a2606735eb5093070e523d4f3b7917d5c3d478d96e325a1a996bb850b6db"
+    },
+    {
+      "path": "docs/architecture/ADR_INDEX.md",
+      "size_bytes": 264,
+      "sha256": "059203f67ff9e9f58d3ecc05a5c929cede2dc6a120dc26dd4a3781bb112e5ca0"
+    },
+    {
+      "path": "docs/architecture/machine_readable/architecture_status.json",
+      "size_bytes": 36724,
+      "sha256": "d914ffc489ce76bc59e8155cf4426f86ce14d9bb8e9cec5ee4921ef62d39a02d"
+    },
+    {
+      "path": "docs/architecture/machine_readable/components.json",
+      "size_bytes": 22066,
+      "sha256": "30b0bb25d196fbd04d8ba58f01ce0fe72158a5a20ef4d6e29b56690d6866f3a9"
+    },
+    {
+      "path": "docs/architecture/machine_readable/interfaces.json",
+      "size_bytes": 20460,
+      "sha256": "6d723e20b6e2e26809e22848a177dea99756f6d1676a763521b53839803091ed"
+    },
+    {
+      "path": "docs/architecture/machine_readable/risks.json",
+      "size_bytes": 9633,
+      "sha256": "ccb436e9844d6495a692a5a7f48d8189f89dd60bf88f1313fdf8cfe567d3547d"
+    },
+    {
+      "path": "docs/architecture/machine_readable/work_packages.json",
+      "size_bytes": 8999,
+      "sha256": "cc8730598fe0af83e1a7eead26185c170d499a82caaf3e0232dcce993435ad48"
+    },
+    {
+      "path": "docs/architecture/README.md",
+      "size_bytes": 3426,
+      "sha256": "8992f59da93b6b724e6fa77579fa791c8060b6824bff6a6afe10b0d98a5c4316"
+    },
+    {
+      "path": "docs/architecture/SIH26168_ADR_Register_v1.md",
+      "size_bytes": 4598,
+      "sha256": "769d3197275652ac248e135bc9951e299a9aefd7dc46cecd567dd0b79103546b"
+    },
+    {
+      "path": "docs/architecture/SIH26168_ARCHITECTURE_MANIFEST_v1.json",
+      "size_bytes": 6472,
+      "sha256": "290a8be301a1a827e2ca741d7b7994c575c1efa18cdf4160198d96dcce155995"
+    },
+    {
+      "path": "docs/architecture/SIH26168_Component_Register_v1.csv",
+      "size_bytes": 12019,
+      "sha256": "ff3ab179c462a690c7dec194d13efea84eee103bfeeb374263c954f50e491544"
+    },
+    {
+      "path": "docs/architecture/SIH26168_Demo_Architecture_v1.md",
+      "size_bytes": 3171,
+      "sha256": "6fba94a27371d1d1b8adc87488eac4474441d84bb71ba872a05ef54300fd4cfa"
+    },
+    {
+      "path": "docs/architecture/SIH26168_Development_Design_Baseline_v1.md",
+      "size_bytes": 12221,
+      "sha256": "3588408527381a7473f34dda9307e89f0a5dce86ac4f0adfb6475634e0039300"
+    },
+    {
+      "path": "docs/architecture/SIH26168_Development_Sequence_v1.md",
+      "size_bytes": 6476,
+      "sha256": "3b6130b404093f0619bc4345b88b3e7e6502730dd9c53c97e9aff88815a61aad"
+    },
+    {
+      "path": "docs/architecture/SIH26168_High_Level_Architecture_Revision3.md",
+      "size_bytes": 22389,
+      "sha256": "958b16784079a4fdc71f60b1188fc24a6da01d36a08ed46f16f68c336c11bd04"
+    },
+    {
+      "path": "docs/architecture/SIH26168_Interface_Inventory_v1.md",
+      "size_bytes": 13438,
+      "sha256": "a30e9f6ca85e230dd440e4aa23054896b1fb08f3d08ac6f9b799b5b5dcd9b4fb"
+    },
+    {
+      "path": "docs/architecture/SIH26168_Open_Decisions_v1.md",
+      "size_bytes": 3002,
+      "sha256": "6d2e6e3f611a338f1a2e979e5fec4543abaa050fad485c9824fa505f6ab020d3"
+    },
+    {
+      "path": "docs/architecture/SIH26168_Repository_Blueprint_v1.md",
+      "size_bytes": 4462,
+      "sha256": "0bd7936c5c6fa92c295c7d0e91a3da6b0a39e2cfa2b715bd240c611e3b91aa4e"
+    },
+    {
+      "path": "docs/architecture/SIH26168_Risk_Register_v1.csv",
+      "size_bytes": 4812,
+      "sha256": "af2168dfb162450a7f3f219a8bc2a4b6d8f06b13bce8bb11977112e6031e75ab"
+    },
+    {
+      "path": "docs/architecture/SIH26168_Verification_Strategy_v1.md",
+      "size_bytes": 4503,
+      "sha256": "eb29326040fccf634df8fde82bb1115427d86599a34a687dd01c259a62072f7f"
+    }
+  ]
+}
