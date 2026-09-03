@@ -58,7 +58,6 @@ payload = {
         "require_last_push_approval": True,
         "bypass_pull_request_allowances": {},
     },
-    "restrictions": None,
     "required_linear_history": True,
     "allow_force_pushes": False,
     "allow_deletions": False,
