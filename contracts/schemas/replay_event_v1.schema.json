@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sih26168.invalid/contracts/replay_event_v1.schema.json",
+  "title": "SyntheticReplayEventV1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "event_id",
+    "monotonic_time_ns",
+    "provenance",
+    "synthetic",
+    "event_type"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "event_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "monotonic_time_ns": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "provenance": {
+      "const": "REPLAY"
+    },
+    "synthetic": {
+      "const": true
+    },
+    "event_type": {
+      "enum": [
+        "GNSS_HEALTHY",
+        "GNSS_OUTAGE",
+        "UNCERTAINTY_GROWTH",
+        "GNSS_REJECTED",
+        "GNSS_REACQUIRED"
+      ]
+    }
+  }
+}

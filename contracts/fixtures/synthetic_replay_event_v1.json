@@ -1,0 +1,8 @@
+{
+  "schema_version": 1,
+  "event_id": "synthetic-0001",
+  "monotonic_time_ns": 1000000000,
+  "provenance": "REPLAY",
+  "synthetic": true,
+  "event_type": "GNSS_HEALTHY"
+}

@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "navigation_states": [
+    "INITIALIZING",
+    "GNSS_HEALTHY",
+    "GNSS_OUTAGE",
+    "REACQUISITION_PENDING",
+    "REACQUIRED",
+    "DEGRADED"
+  ],
+  "provenance": [
+    "LIVE",
+    "REPLAY"
+  ],
+  "note": "SCAFFOLD \u2014 NOT IMPLEMENTED"
+}

@@ -1,0 +1,7 @@
+{
+  "contract_version": "1.0.0-bootstrap",
+  "generated_from": [
+    "contracts/VERSION",
+    "contracts/enums/navigation_states_v1.json"
+  ]
+}
