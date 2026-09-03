@@ -1,0 +1,13 @@
+* @akhileshkancharla @FaisalTabrez
+/core/ @akhileshkancharla @FaisalTabrez
+/contracts/ @akhileshkancharla @FaisalTabrez
+/.github/workflows/ @akhileshkancharla @FaisalTabrez
+/.github/CODEOWNERS @akhileshkancharla @FaisalTabrez
+/ci/ @akhileshkancharla @FaisalTabrez
+/docs/architecture/ @akhileshkancharla @FaisalTabrez
+/tools/analyzer/ @akhileshkancharla @FaisalTabrez
+/tools/dataset/ @FaisalTabrez @akhileshkancharla
+/tools/training/ @Zeeshan1786 @akhileshkancharla
+/android/ @likhithayepalagunta-19 @akhileshkancharla
+/demo/ @eragarg @akhileshkancharla
+/submission/ @eragarg @likhithayepalagunta-19 @akhileshkancharla

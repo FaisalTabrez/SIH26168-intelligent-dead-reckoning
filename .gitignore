@@ -1,0 +1,43 @@
+# Credentials and local configuration
+.env
+.env.*
+*.pem
+*.key
+*.keystore
+*.jks
+local.properties
+# IDE/build/cache
+.idea/
+.vscode/
+.gradle/
+build/
+**/build/
+.cxx/
+CMakeFiles/
+CMakeCache.txt
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+# Sensitive or large artifacts
+data/
+private/
+*.pbf
+*.sqlite
+*.sqlite3
+*.db
+*.apk
+*.aab
+*.onnx
+*.pt
+*.pth
+*.tflite
+*.zip
+*.7z
+*.tar
+*.gz
+*.jsonl
+# OS noise
+.DS_Store
+Thumbs.db
