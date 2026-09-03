@@ -320,19 +320,26 @@ def configure_issues(milestones: dict[str, dict], invitations: dict[str, str]) -
         if can_assign(row["Intended assignee"], invitations):
             payload["assignees"] = [row["Intended assignee"]]
         if row["Title"] in existing:
-            record = api(f"repos/{REPOSITORY}/issues/{existing[row['Title']]['number']}", "PATCH", payload)
+            current = existing[row["Title"]]
+            if current["state"] == "closed":
+                record = current
+            else:
+                record = api(f"repos/{REPOSITORY}/issues/{current['number']}", "PATCH", payload)
         else:
             record = api(f"repos/{REPOSITORY}/issues", "POST", payload)
         row["Issue number"] = str(record["number"])
         row["URL"] = record["html_url"]
         row["Actual assignee"] = ";".join(item["login"] for item in record.get("assignees", []))
+        if record["state"] == "closed":
+            row["Status"] = "status:done"
 
     # Replace parent placeholders with the actual linked child checklist.
     for row in rows:
         if "." in row["WP ID"]:
             continue
         children = [child for child in rows if child["Parent"] == row["WP ID"]]
-        api(f"repos/{REPOSITORY}/issues/{row['Issue number']}", "PATCH", {"body": parent_body(row, children)})
+        if existing.get(row["Title"], {}).get("state") != "closed":
+            api(f"repos/{REPOSITORY}/issues/{row['Issue number']}", "PATCH", {"body": parent_body(row, children)})
 
     write_csv(path, rows, fields)
     refreshed = {item["title"]: item for item in all_pages(f"repos/{REPOSITORY}/issues?state=all") if "pull_request" not in item}

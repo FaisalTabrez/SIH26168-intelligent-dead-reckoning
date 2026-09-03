@@ -1024,6 +1024,9 @@ def workflows() -> None:
             }} else {{
               await github.rest.issues.addLabels({{...context.repo, issue_number: issue.number, labels: ['status:closure-approved', 'status:done']}});
               try {{ await github.rest.issues.removeLabel({{...context.repo, issue_number: issue.number, name: 'status:unauthorized-close'}}); }} catch (e) {{ if (e.status !== 404) throw e; }}
+              for (const name of ['status:backlog', 'status:ready', 'status:in-progress', 'status:in-review', 'status:blocked', 'status:update-required', 'status:at-risk', 'status:reassignment-required']) {{
+                try {{ await github.rest.issues.removeLabel({{...context.repo, issue_number: issue.number, name}}); }} catch (e) {{ if (e.status !== 404) throw e; }}
+              }}
             }}
 """
     write(".github/workflows/issue-close-guard.yml", close_guard)
