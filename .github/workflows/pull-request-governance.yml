@@ -14,7 +14,6 @@ jobs:
       - uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
         with:
           script: |
-            const text = `${context.payload.pull_request.title}
-${context.payload.pull_request.body || ''}`;
-            if (/(closes|fixes|resolves)\s+#\d+/i.test(text)) core.setFailed('Use Relates to #123; automatic closure keywords are prohibited.');
+            const text = `${context.payload.pull_request.title}\n${context.payload.pull_request.body || ''}`;
+            if (/\b(closes|fixes|resolves)\s+#\d+/i.test(text)) core.setFailed('Use Relates to #123; automatic closure keywords are prohibited.');
             if (!/Relates to #\d+/i.test(text)) core.setFailed('A Relates to #123 reference is required.');

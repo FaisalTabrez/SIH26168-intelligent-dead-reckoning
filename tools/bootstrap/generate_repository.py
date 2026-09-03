@@ -519,6 +519,8 @@ def basic_files() -> None:
         namespace = "org.sih26168.app"
         compileSdk = 35
         defaultConfig { applicationId = "org.sih26168.app"; minSdk = 26; targetSdk = 35; versionCode = 1; versionName = "0.1.0-bootstrap"; testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner" }
+        compileOptions { sourceCompatibility = JavaVersion.VERSION_17; targetCompatibility = JavaVersion.VERSION_17 }
+        kotlinOptions { jvmTarget = "17" }
         buildFeatures { buildConfig = true }
         testOptions { unitTests.isReturnDefaultValues = true }
     }
@@ -1134,6 +1136,7 @@ def verification_scripts() -> None:
     def actions(errors):
         for p in (ROOT/".github/workflows").glob("*.yml"):
             value=text(p)
+            if any(ord(ch) < 32 and ch not in "\n\r\t" for ch in value): errors.append(f"control character in workflow: {p.name}")
             for line in value.splitlines():
                 if "uses:" in line and not re.search(r"@[0-9a-f]{40}(?:\s+#|\s*$)",line): errors.append(f"mutable action reference: {p.name}: {line.strip()}")
             if not re.search(r"(?m)^permissions:\s*$",value): errors.append(f"permissions missing: {p.name}")
