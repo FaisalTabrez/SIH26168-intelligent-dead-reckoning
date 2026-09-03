@@ -202,6 +202,9 @@ No fabricated evidence, unapproved architecture, private data in Git/CI, or impl
 ## Milestone
 {row['Milestone']}
 
+## Due date
+{row['Due date'] or 'Per milestone; post-submission unless explicitly promoted'}
+
 ## Definition of done
 - [ ] Every mandatory child is closed through the authorized close workflow
 - [ ] Dependencies are satisfied
@@ -351,8 +354,8 @@ def update_assignment_register(invitations: dict[str, str], issues: list[dict[st
     rows, fields = read_csv(path)
     for row in rows:
         username = row["Intended assignee"]
-        actual = sorted({issue["Actual assignee"] for issue in issues if issue["WP ID"].startswith(row["WP"]) and issue["Actual assignee"]})
-        row["Actual assignee"] = ";".join(actual) if actual else invitations.get(username, "pending invitation/verification")
+        parent = next(issue for issue in issues if issue["WP ID"] == row["WP"])
+        row["Actual assignee"] = parent["Actual assignee"] or invitations.get(username, "pending invitation/verification")
     write_csv(path, rows, fields)
 
 

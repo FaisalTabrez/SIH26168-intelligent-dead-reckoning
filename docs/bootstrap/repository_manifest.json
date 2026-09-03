@@ -9,18 +9,18 @@
     },
     {
       "path": "docs/bootstrap/GITHUB_CONFIGURATION_STATE.json",
-      "size_bytes": 589,
-      "sha256": "8c4ddb9bb82a8a4ee5f547487893679479440bbf09b07a6f6dee9a88f0eaa82a"
+      "size_bytes": 1534,
+      "sha256": "362dec343c7aa1602d3eef91f7043ffd3e87dbe1492140762d9617cb3946f962"
     },
     {
       "path": "docs/bootstrap/ISSUE_REGISTER.csv",
-      "size_bytes": 41817,
-      "sha256": "568de580ade011a060f27a5f7c150a10d568540d3c7706ddc2c851593dc2313a"
+      "size_bytes": 42529,
+      "sha256": "3a4e4b84727f7a9dc89afecf41945d8887830a00d2d809e7644a43bc04519eaa"
     },
     {
       "path": "docs/bootstrap/KNOWN_LIMITATIONS.md",
-      "size_bytes": 469,
-      "sha256": "90bc234ea74e195fae3fdfd92b41f1b8b8145be54ebdcb4cb735777528ac3e7b"
+      "size_bytes": 1030,
+      "sha256": "4036d6f67623800b936571a7dd14670b4ea2b373e682ca0592b8ca7a74391ff2"
     },
     {
       "path": "docs/bootstrap/LABEL_REGISTER.csv",
@@ -34,18 +34,18 @@
     },
     {
       "path": "docs/bootstrap/NEXT_ACTIONS.md",
-      "size_bytes": 603,
-      "sha256": "b6f33402d9708a9e1c06242dc6fb1c3186359e151c5d78fc8604d19dce374040"
+      "size_bytes": 775,
+      "sha256": "b21565210c1276f302318ae1a970de9391524539af9ece79ebd8c86ee361bdae"
     },
     {
       "path": "docs/bootstrap/PROJECT_MANUAL_SETUP.md",
-      "size_bytes": 332,
-      "sha256": "db05967002af189acafddd5ad993c6a2b47bf56bce2af251733e4d2e8e19b052"
+      "size_bytes": 1560,
+      "sha256": "7f5e56139aab9a62b77077336e085649d66f2d4845a40a6907af6ce1f9e1dc24"
     },
     {
       "path": "docs/bootstrap/REPOSITORY_BOOTSTRAP_REPORT.md",
-      "size_bytes": 270,
-      "sha256": "aa7644486c19c998aeb5e96b696a03735853c0d559577063f90bf13da88d87b3"
+      "size_bytes": 2849,
+      "sha256": "835bb4f1c2b963864b82b6a1076e5244e8e0d52dc794d2a9aa40ec71dffd31f6"
     },
     {
       "path": "docs/bootstrap/REPOSITORY_RULES.md",
@@ -59,8 +59,8 @@
     },
     {
       "path": "docs/bootstrap/TEAM_ASSIGNMENT_MATRIX.csv",
-      "size_bytes": 1233,
-      "sha256": "976790ab371da0ce42aaf41f30ac07f0c6e9ed8c2fd4323adc0c32aa095dc7ee"
+      "size_bytes": 1241,
+      "sha256": "9400e590ad32d17d899ebe3e884774fe1c4a6720a0a974fad658809ec0cae0ae"
     },
     {
       "path": "docs/bootstrap/TEAM_ASSIGNMENT_MATRIX.md",
@@ -69,8 +69,8 @@
     },
     {
       "path": "docs/bootstrap/WORKFLOW_REGISTER.csv",
-      "size_bytes": 1350,
-      "sha256": "0816a2606735eb5093070e523d4f3b7917d5c3d478d96e325a1a996bb850b6db"
+      "size_bytes": 1349,
+      "sha256": "7af4103987430738ee699406d17df7bb9f77c34b0eb6aa4843519d0e69c6f6a3"
     },
     {
       "path": "docs/architecture/ADR_INDEX.md",

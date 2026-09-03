@@ -2,7 +2,11 @@
   "repository": {
     "url": "https://github.com/akhileshkancharla/SIH26168-intelligent-dead-reckoning",
     "visibility": "private",
-    "default_branch": "main"
+    "default_branch": "main",
+    "squash_merge": true,
+    "merge_commits": false,
+    "rebase_merge": false,
+    "delete_branch_on_merge": true
   },
   "authenticated_owner": "akhileshkancharla",
   "label_count": 66,
@@ -13,9 +17,21 @@
   "submission_critical_issue_count": 40,
   "collaborators": {
     "FaisalTabrez": "pending",
-    "Zeeshan1786": "pending",
+    "Zeeshan1786": "active:write",
     "likhithayepalagunta-19": "pending",
     "eragarg": "pending",
-    "mjunaidqureshimct255a1405-art": "pending"
+    "mjunaidqureshimct255a1405-art": "active:write"
+  },
+  "project_v2": {
+    "created": false,
+    "reason": "Authenticated token lacks project and read:project scopes.",
+    "manual_setup": "docs/bootstrap/PROJECT_MANUAL_SETUP.md"
+  },
+  "validation": {
+    "pull_request": "https://github.com/akhileshkancharla/SIH26168-intelligent-dead-reckoning/pull/129",
+    "unauthorized_close_run": "https://github.com/akhileshkancharla/SIH26168-intelligent-dead-reckoning/actions/runs/33708637152",
+    "authorized_close_run": "https://github.com/akhileshkancharla/SIH26168-intelligent-dead-reckoning/actions/runs/33708760553",
+    "wip_limit_run": "https://github.com/akhileshkancharla/SIH26168-intelligent-dead-reckoning/actions/runs/33708811544",
+    "inactivity_dry_run": "https://github.com/akhileshkancharla/SIH26168-intelligent-dead-reckoning/actions/runs/33708875912"
   }
 }
