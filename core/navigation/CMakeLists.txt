@@ -1,0 +1,6 @@
+add_library(sih26168_navigation_smoke STATIC src/smoke.cpp)
+target_include_directories(sih26168_navigation_smoke PUBLIC ${PROJECT_SOURCE_DIR}/core/include)
+target_compile_features(sih26168_navigation_smoke PUBLIC cxx_std_20)
+add_executable(sih26168_navigation_smoke_test tests/smoke_test.cpp)
+target_link_libraries(sih26168_navigation_smoke_test PRIVATE sih26168_navigation_smoke)
+add_test(NAME navigation-smoke COMMAND sih26168_navigation_smoke_test)
