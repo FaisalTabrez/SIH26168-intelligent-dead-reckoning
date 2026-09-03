@@ -1,14 +1,14 @@
 Milestone,Due UTC,Due IST,Purpose,Number,URL
-M0 — Repository Ready,2026-09-03T14:30:00Z,2026-09-03 20:00 IST,WP-00 complete by 20:00 IST,,
-M1 — Submission Contracts,2026-09-05T18:29:59Z,2026-09-05 IST,"Contracts, narrative and wireframes",,
-M2 — Replay App Foundation,2026-09-08T18:29:59Z,2026-09-08 IST,"Android, S2/JNI and replay foundation",,
-M3 — Demo Alpha,2026-09-10T18:29:59Z,2026-09-10 IST,End-to-end application sequence,,
-M4 — Content Freeze,2026-09-12T18:29:59Z,2026-09-12 IST,"Stable behaviour, PPT v1 and script v1",,
-M5 — Recording Candidate,2026-09-13T18:29:59Z,2026-09-13 IST,Video and presentation candidate,,
-M6 — Internal Submission Freeze,2026-09-15T18:29:59Z,2026-09-15 IST,Final submission package,,
-M7 — SIH Portal Submission,2026-09-20T18:29:59Z,2026-09-20 IST,Portal delivery and confirmation,,
-P2 — Scientific/Core/Map/Data Gates,2026-09-27T18:29:59Z,2026-09-27 IST,"S1, S3, GNSS, matcher and private data",,
-P3 — Classical and Evaluation,2026-10-07T18:29:59Z,2026-10-07 IST,"UI, analyzer, baseline and ML experiment",,
-P4 — Integrated Scientific Demo,2026-10-17T18:29:59Z,2026-10-17 IST,ONNX shadow and ten-event integration,,
-P5 — Portable Edge,2026-10-22T18:29:59Z,2026-10-22 IST,External IMU path,,
-P6 — Final Release Candidate,2026-10-31T18:29:59Z,2026-10-31 IST,Complete verified release,,
+M0 — Repository Ready,2026-09-03T14:30:00Z,2026-09-03 20:00 IST,WP-00 complete by 20:00 IST,1,https://github.com/akhileshkancharla/SIH26168-intelligent-dead-reckoning/milestone/1
+M1 — Submission Contracts,2026-09-05T18:29:59Z,2026-09-05 IST,"Contracts, narrative and wireframes",2,https://github.com/akhileshkancharla/SIH26168-intelligent-dead-reckoning/milestone/2
+M2 — Replay App Foundation,2026-09-08T18:29:59Z,2026-09-08 IST,"Android, S2/JNI and replay foundation",3,https://github.com/akhileshkancharla/SIH26168-intelligent-dead-reckoning/milestone/3
+M3 — Demo Alpha,2026-09-10T18:29:59Z,2026-09-10 IST,End-to-end application sequence,4,https://github.com/akhileshkancharla/SIH26168-intelligent-dead-reckoning/milestone/4
+M4 — Content Freeze,2026-09-12T18:29:59Z,2026-09-12 IST,"Stable behaviour, PPT v1 and script v1",5,https://github.com/akhileshkancharla/SIH26168-intelligent-dead-reckoning/milestone/5
+M5 — Recording Candidate,2026-09-13T18:29:59Z,2026-09-13 IST,Video and presentation candidate,6,https://github.com/akhileshkancharla/SIH26168-intelligent-dead-reckoning/milestone/6
+M6 — Internal Submission Freeze,2026-09-15T18:29:59Z,2026-09-15 IST,Final submission package,7,https://github.com/akhileshkancharla/SIH26168-intelligent-dead-reckoning/milestone/7
+M7 — SIH Portal Submission,2026-09-20T18:29:59Z,2026-09-20 IST,Portal delivery and confirmation,8,https://github.com/akhileshkancharla/SIH26168-intelligent-dead-reckoning/milestone/8
+P2 — Scientific/Core/Map/Data Gates,2026-09-27T18:29:59Z,2026-09-27 IST,"S1, S3, GNSS, matcher and private data",9,https://github.com/akhileshkancharla/SIH26168-intelligent-dead-reckoning/milestone/9
+P3 — Classical and Evaluation,2026-10-07T18:29:59Z,2026-10-07 IST,"UI, analyzer, baseline and ML experiment",10,https://github.com/akhileshkancharla/SIH26168-intelligent-dead-reckoning/milestone/10
+P4 — Integrated Scientific Demo,2026-10-17T18:29:59Z,2026-10-17 IST,ONNX shadow and ten-event integration,11,https://github.com/akhileshkancharla/SIH26168-intelligent-dead-reckoning/milestone/11
+P5 — Portable Edge,2026-10-22T18:29:59Z,2026-10-22 IST,External IMU path,12,https://github.com/akhileshkancharla/SIH26168-intelligent-dead-reckoning/milestone/12
+P6 — Final Release Candidate,2026-10-31T18:29:59Z,2026-10-31 IST,Complete verified release,13,https://github.com/akhileshkancharla/SIH26168-intelligent-dead-reckoning/milestone/13

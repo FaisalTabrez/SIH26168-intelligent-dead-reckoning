@@ -1,0 +1,21 @@
+{
+  "repository": {
+    "url": "https://github.com/akhileshkancharla/SIH26168-intelligent-dead-reckoning",
+    "visibility": "private",
+    "default_branch": "main"
+  },
+  "authenticated_owner": "akhileshkancharla",
+  "label_count": 66,
+  "milestone_count": 13,
+  "parent_issue_count": 18,
+  "child_issue_count": 110,
+  "total_issue_count": 128,
+  "submission_critical_issue_count": 40,
+  "collaborators": {
+    "FaisalTabrez": "pending",
+    "Zeeshan1786": "pending",
+    "likhithayepalagunta-19": "pending",
+    "eragarg": "pending",
+    "mjunaidqureshimct255a1405-art": "pending"
+  }
+}

@@ -3,9 +3,14 @@
   "scope": "Bootstrap and immutable Architecture Revision 3 artifacts; manifest excludes itself.",
   "files": [
     {
+      "path": "docs/bootstrap/GITHUB_CONFIGURATION_STATE.json",
+      "size_bytes": 589,
+      "sha256": "8c4ddb9bb82a8a4ee5f547487893679479440bbf09b07a6f6dee9a88f0eaa82a"
+    },
+    {
       "path": "docs/bootstrap/ISSUE_REGISTER.csv",
-      "size_bytes": 29920,
-      "sha256": "0e8afed5e5d6a672ecf37e227bf0efebc9dfe7908d2a4d83ed64ec2fb3271445"
+      "size_bytes": 41817,
+      "sha256": "568de580ade011a060f27a5f7c150a10d568540d3c7706ddc2c851593dc2313a"
     },
     {
       "path": "docs/bootstrap/KNOWN_LIMITATIONS.md",
@@ -19,8 +24,8 @@
     },
     {
       "path": "docs/bootstrap/MILESTONE_REGISTER.csv",
-      "size_bytes": 1348,
-      "sha256": "cbcc28e83a2c0b98979ad7f346160e91739c7b0e312981eebe72a40209bd4376"
+      "size_bytes": 2461,
+      "sha256": "3b69a32505baa7d69687bd5d364d0ad9a9fc63330b71b5c1e743970510d9dd58"
     },
     {
       "path": "docs/bootstrap/NEXT_ACTIONS.md",
@@ -49,8 +54,8 @@
     },
     {
       "path": "docs/bootstrap/TEAM_ASSIGNMENT_MATRIX.csv",
-      "size_bytes": 1555,
-      "sha256": "3c4f53e87dd5cd0907fa16f6b53838b92aae751b234a4d9c3c97a201ffaf2c14"
+      "size_bytes": 1233,
+      "sha256": "976790ab371da0ce42aaf41f30ac07f0c6e9ed8c2fd4323adc0c32aa095dc7ee"
     },
     {
       "path": "docs/bootstrap/TEAM_ASSIGNMENT_MATRIX.md",
