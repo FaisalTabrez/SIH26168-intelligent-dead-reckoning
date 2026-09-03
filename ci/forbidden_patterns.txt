@@ -1,0 +1,6 @@
+Raw IO-VNBD bytes or extracts
+Raw S1 recordings and private analyzer evidence
+PBF source files and private SQLite graphs
+Credentials, tokens, signing keys and keystores
+Absolute local machine paths
+Unapproved model weights and large binaries

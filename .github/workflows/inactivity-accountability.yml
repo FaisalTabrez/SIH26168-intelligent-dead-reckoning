@@ -1,0 +1,37 @@
+name: Inactivity accountability
+on:
+  schedule:
+    - cron: '23 1 * * *'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: Do not mutate issues
+        required: false
+        default: 'true'
+permissions:
+  contents: read
+  issues: write
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  inactivity-accountability:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+        env:
+          DRY_RUN: ${{ inputs.dry_run || 'false' }}
+        with:
+          script: |
+            const dry = process.env.DRY_RUN === 'true';
+            const issues = await github.paginate(github.rest.issues.listForRepo, {...context.repo, state: 'open', labels: 'status:in-progress', per_page: 100});
+            const now = Date.now(); const summary = [];
+            for (const issue of issues.filter(x => !x.pull_request)) {
+              if (issue.labels.some(l => l.name === 'status:approved-unavailable')) continue;
+              const comments = await github.paginate(github.rest.issues.listComments, {...context.repo, issue_number: issue.number, per_page: 100});
+              const human = comments.filter(c => c.user.type !== 'Bot');
+              const last = human.length ? new Date(human.at(-1).created_at).getTime() : new Date(issue.updated_at).getTime();
+              const hours = (now - last) / 3600000; let label = hours >= 72 ? 'status:reassignment-required' : hours >= 48 ? 'status:at-risk' : hours >= 24 ? 'status:update-required' : null;
+              if (label) { summary.push(`#${issue.number} ${label}`); if (!dry) await github.rest.issues.addLabels({...context.repo, issue_number: issue.number, labels: [label]}); }
+            }
+            core.summary.addHeading(dry ? 'Inactivity dry run' : 'Inactivity enforcement').addList(summary.length ? summary : ['No escalation required']).write();

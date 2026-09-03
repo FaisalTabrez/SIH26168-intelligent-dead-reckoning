@@ -1,0 +1,33 @@
+name: Issue close guard
+on:
+  issues:
+    types: [closed]
+permissions:
+  contents: read
+  issues: write
+  pull-requests: read
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  issue-close-guard:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+        with:
+          script: |
+            const issue = context.payload.issue;
+            const authorized = ['akhileshkancharla', 'FaisalTabrez'].map(x => x.toLowerCase());
+            const comments = await github.paginate(github.rest.issues.listComments, {...context.repo, issue_number: issue.number, per_page: 100});
+            const approval = [...comments].reverse().find(c => authorized.includes(c.user.login.toLowerCase()) && c.body.trim() === '/approve-close' && new Date(c.created_at) >= new Date(issue.updated_at));
+            const checksComplete = !/- \[ \]/.test(issue.body || '');
+            const evidence = /Evidence:\s*https?:\/\//i.test(issue.body || '');
+            const blocked = issue.labels.some(l => (l.name || l) === 'status:blocked');
+            const closerAllowed = authorized.includes(context.actor.toLowerCase());
+            if (!(approval && checksComplete && evidence && !blocked && closerAllowed)) {
+              await github.rest.issues.update({...context.repo, issue_number: issue.number, state: 'open'});
+              await github.rest.issues.addLabels({...context.repo, issue_number: issue.number, labels: ['status:unauthorized-close']});
+              try { await github.rest.issues.removeLabel({...context.repo, issue_number: issue.number, name: 'status:done'}); } catch (e) { if (e.status !== 404) throw e; }
+              await github.rest.issues.createComment({...context.repo, issue_number: issue.number, body: `Closure reversed and audited. Actor: @${context.actor}. Missing one or more of: authorized closer, current /approve-close, complete checklist, evidence URL, or unblocked status. @akhileshkancharla @FaisalTabrez`});
+              core.summary.addHeading('Unauthorized issue closure reversed').addRaw(`Actor: ${context.actor}`).write();
+            }
