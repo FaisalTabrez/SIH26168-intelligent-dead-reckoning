@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sih26168.invalid/contracts/schemas/common/provenance_v1.schema.json",
+  "title": "ProvenanceV1",
+  "description": "Normative provenance tracking contract for SIH26168 defining evidence identity, session/stream context, hardware/build lineage, and upstream evidence consumption.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "evidence_id",
+    "session_id",
+    "stream_id",
+    "provenance_type"
+  ],
+  "properties": {
+    "evidence_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Globally unique observation identifier ensuring first-presentation evidence consumption."
+    },
+    "session_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Immutable session identifier."
+    },
+    "stream_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Identifier of the sensor, provider, or processing pipeline stream."
+    },
+    "device_id": {
+      "type": "string",
+      "description": "Hardware device or model identifier."
+    },
+    "build_id": {
+      "type": "string",
+      "description": "Software build version, release tag, or git commit SHA."
+    },
+    "provenance_type": {
+      "enum": [
+        "LIVE",
+        "REPLAY",
+        "SYNTHETIC"
+      ],
+      "description": "Operational origin classification of the observation."
+    },
+    "contributing_evidence_ids": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true,
+      "description": "Array of upstream evidence IDs consumed by derived filters or fusion components."
+    }
+  }
+}

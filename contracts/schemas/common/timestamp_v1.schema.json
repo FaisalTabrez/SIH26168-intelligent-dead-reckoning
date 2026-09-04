@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sih26168.invalid/contracts/schemas/common/timestamp_v1.schema.json",
+  "title": "TimestampV1",
+  "description": "Normative timebase contract for SIH26168 defining monotonic scientific epoch, hardware arrival clock, and clock domain identification.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "epoch_ns",
+    "arrival_elapsed_realtime_ns",
+    "clock_id"
+  ],
+  "properties": {
+    "epoch_ns": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Canonical 64-bit nanosecond monotonic scientific epoch time."
+    },
+    "arrival_elapsed_realtime_ns": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Monotonic nanoseconds from android.os.SystemClock.elapsedRealtimeNanos() recorded at callback arrival."
+    },
+    "source_timestamp_ns": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Optional raw sensor hardware callback timestamp in nanoseconds."
+    },
+    "clock_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Identifier string designating the clock domain."
+    }
+  }
+}
