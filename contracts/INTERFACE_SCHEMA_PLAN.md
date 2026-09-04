@@ -3,140 +3,496 @@
 **Work Package:** `WP-01.1`  
 **Parent Work Package:** `WP-01` (Relates to Issue [#2](https://github.com/akhileshkancharla/SIH26168-intelligent-dead-reckoning/issues/2))  
 **Issue:** Issue [#25](https://github.com/akhileshkancharla/SIH26168-intelligent-dead-reckoning/issues/25)  
-**Status:** Baseline Implementation Plan  
+**Status:** Baseline Normative Interface-Schema Plan
 **Authority:** [Architecture Revision 3](../docs/architecture/SIH26168_High_Level_Architecture_Revision3.md), [Interface Inventory v1](../docs/architecture/SIH26168_Interface_Inventory_v1.md), and [Machine-Readable Interfaces](../docs/architecture/machine_readable/interfaces.json)  
 
 ---
 
-## 1. Purpose and Architecture Context
+## 1. Scope and Architectural Separation
 
-This document establishes the authoritative implementation and migration plan for interfaces **I-01 through I-22** within `Component C-20 (Contracts and configuration package)`. It bridges the conceptual architecture defined in [SIH26168 Interface Inventory v1](../docs/architecture/SIH26168_Interface_Inventory_v1.md) into concrete, machine-enforceable contracts.
+### 1.1 Normative Blueprint vs. Executable Implementation
+This document establishes the **normative architectural and technical interface-schema plan** for all 22 system interfaces (`I-01` through `I-22`). It provides the binding technical specification, field taxonomy, coordinate conventions, clock domains, and mathematical invariants required before code generation begins.
 
-This plan binds subsequent child issues within `WP-01`:
-- **`WP-01.2` (Issue #26):** Common envelope, timestamp domains, and provenance contracts.
-- **`WP-01.3` (Issue #27):** Navigation, health, alignment, and display-state enums.
-- **`WP-01.4` (Issue #28):** Deterministic contract code generation tooling.
-- **`WP-01.5` (Issue #29):** Minimal Kotlin, C++, and Python bindings.
-- **`WP-01.6` (Issue #30):** Schema compatibility tests and synthetic fixtures.
-
----
-
-## 2. Global Contract Invariants and Representation Taxonomy
-
-### 2.1 Serialization and Representation Taxonomy
-
-Per [ADR-005](../docs/architecture/SIH26168_ADR_Register_v1.md), [ADR-006](../docs/architecture/SIH26168_ADR_Register_v1.md), and [ADR-007](../docs/architecture/SIH26168_ADR_Register_v1.md), interfaces are partitioned into three serialization tiers:
-
-1. **Tier A: Durable Artifact and Manifest Contracts (JSON Schema Draft 2020-12)**
-   - Used for recording session manifests, model manifests, dataset lineage, map metadata, and system configuration.
-   - Enforced by strict JSON Schema definitions, zero unknown properties (`additionalProperties: false`), and SHA-256 cryptographic digests.
-   - *Interfaces:* `I-18`, `I-19`, `I-20`, `I-21`, `I-22`.
-
-2. **Tier B: Stream, Recording, and Event Contracts (JSON Schema Draft 2020-12 + JSONL Chunks)**
-   - Used for app-private append-only JSONL recording, replay file feeds, status broadcasts, UI snapshots, and lifecycle events.
-   - Self-describing schema versions, explicit nullability masks, and strict monotonic ordering per stream.
-   - *Interfaces:* `I-01`, `I-02`, `I-04`, `I-13`, `I-14`, `I-15`, `I-16`, `I-17`.
-
-3. **Tier C: High-Frequency Native Engine Contracts (Direct Binary JNI & C++ POD Structs)**
-   - Used at the high-frequency boundaries between Kotlin acquisition and the C++ S2 core, avoiding per-sample JNI overhead or runtime JSON serialization.
-   - Batched memory buffers with explicit memory alignment, IEEE 754 float/double arrays, and deterministic C++ representations.
-   - Mirrored by equivalent JSON Schema definitions for synthetic test injection, replay parsing, and offline validation.
-   - *Interfaces:* `I-03`, `I-05`, `I-06`, `I-07`, `I-08`, `I-09`, `I-10`, `I-11`, `I-12`.
-
-### 2.2 Invariant Frame, Unit, and Clock Standards
-
-- **Coordinate Frames:**
-  - `WGS84`: Geodetic latitude and longitude in decimal degrees; ellipsoidal altitude in meters.
-  - `Local NED (n)`: North-East-Down Cartesian frame anchored to an explicit, immutable session origin (`origin_id`).
-  - `IMU Body (b)`: Physical sensor package Cartesian axes (accelerometer, gyroscope, magnetometer).
-  - `Vehicle Body (v)`: Vehicle chassis forward-right-down frame.
-  - `Active Quaternions`: Hamilton convention, scalar-first $[w, x, y, z]$ with canonical constraint $w \ge 0$ and unit norm $\|q\| = 1.0 \pm 10^{-6}$.
-- **Units:**
-  - Strictly International System of Units (SI): position ($m$), velocity ($m/s$), acceleration ($m/s^2$), angular rate ($rad/s$), magnetic field ($\mu T$), uncertainty ($m^2, (m/s)^2, rad^2$).
-- **Clock Domains:**
-  - Monotonic scientific epochs in signed 64-bit integer nanoseconds (`int64`, non-decreasing per session/stream).
-  - Hardware arrival timestamped with `android.elapsed_realtime_ns` per boot; wall-clock UTC is auxiliary metadata only.
-- **Evidence & Provenance:**
-  - Every sample, fix, proposal, and decision carries a non-empty `evidence_id`.
-  - First-presentation consumption: duplicated or recycled evidence IDs are rejected by the core filter.
-  - Mode labels `LIVE` vs. `REPLAY` are permanent and immutable.
+To prevent implementer ambiguity, the architectural boundaries of `WP-01` are partitioned as follows:
+- **`WP-01.1` (This Plan - Issue #25):** The normative interface schema blueprint, serialization taxonomy, kinematics/frame definitions, timebase rules, and compatibility policy across Kotlin, C++, and Python.
+- **`WP-01.2` (Issue #26):** Executable JSON Schema implementations for common base envelopes, timestamp domains, and provenance headers (`contracts/schemas/common/`).
+- **`WP-01.3` (Issue #27):** Executable JSON definitions for system enums (navigation mode, health/integrity state, alignment status, and display modes) (`contracts/enums/`).
+- **`WP-01.4` (Issue #28):** Deterministic contract code generation tooling (`ci/generate_contract_bindings.py`).
+- **`WP-01.5` (Issue #29):** Generated target language bindings for Android/Kotlin, C++20, and Python (`contracts/generated/`).
+- **`WP-01.6` (Issue #30):** Machine-enforced schema compatibility tests and synthetic golden fixtures (`contracts/fixtures/`).
 
 ---
 
-## 3. Interface Specification Matrix (I-01 through I-22)
+## 2. Contract Compatibility and Evolution Policy
 
-The table below defines the schema target, serialization format, field structure, and validation rules for all 22 interfaces:
+Before generating code or writing executable schemas, the following versioning and evolution policies are normative:
 
-| ID | Name | Producer / Consumer | Target Schema File / Native Header | Primary Fields | Units / Frame / Clock | Validation & Replay Invariants |
-|---|---|---|---|---|---|---|
-| **I-01** | `RawSensorSample` | `C-01/C-12` $\to$ `C-02/C-03` | `contracts/schemas/raw_sensor_sample_v1.schema.json` | `schema_version`, `evidence_id`, `session_id`, `stream_id`, `sequence`, `source_timestamp_ns`, `arrival_elapsed_realtime_ns`, `sensor_type`, `values`, `accuracy`, `source_metadata` | Accel: $m/s^2$, Gyro: $rad/s$, Mag: $\mu T$<br>Frame: Raw body axes<br>Clock: `elapsed_realtime_ns` | Finite values; unique `evidence_id`; arrival $\ge 0$; strict increasing sequence per stream; replay exact order/timing. |
-| **I-02** | `LocationGnssFix` | `C-01/C-12` $\to$ `C-02/C-03/C-05/C-09` | `contracts/schemas/location_gnss_fix_v1.schema.json` | `schema_version`, `evidence_id`, `provider`, `source_timestamp_ns`, `arrival_elapsed_realtime_ns`, `lat_deg`, `lon_deg`, `alt_m`, `hacc_m`, `vacc_m`, `speed_mps`, `speed_acc_mps`, `bearing_deg`, `bearing_acc_deg`, `is_mock`, `field_mask` | Angles: degrees, Distance: $m$, Speed: $m/s$<br>Frame: WGS84 Geodetic<br>Clock: `elapsed_realtime_ns` | Latitude $[-90, 90]$, Longitude $[-180, 180]$; finite covariance floors; consume once; retains `is_mock` flag; software outage masking hides from estimator but preserves in recording. |
-| **I-03** | `ImuBatch` | `C-03` $\to$ `C-06/C-07/C-08` | `contracts/schemas/imu_batch_v1.schema.json`<br>`core/include/sih/contracts/imu_batch.hpp` | `batch_id`, `samples`, `first_seq`, `last_seq`, `gap_flags`, `clock_id` | Accel: $m/s^2$, Gyro: $rad/s$, $dt$: $s$<br>Frame: Physical IMU body $b$<br>Clock: Single monotonic clock | $10^{-6} \le dt \le 0.20\,s$ for S2 propagation; no fabricated accel/gyro pairs; gaps flagged; direct buffer binary layout for JNI. |
-| **I-04** | `SensorQualityStatus` | `C-01/C-03` $\to$ `C-02/C-04/C-05/C-08/C-09` | `contracts/schemas/sensor_quality_status_v1.schema.json` | `sequence`, `epoch_ns`, `stream_states`, `gap_stats`, `batch_stats`, `thermal`, `battery`, `storage`, `lifecycle` | $ns, s, Hz, \text{bytes}, \%$<br>Frame: N/A<br>Clock: `elapsed_realtime_ns` | Monotonic status sequence; explicit `UNKNOWN/DEGRADED/FAILED` enums; no fabricated readings from unavailable APIs. |
-| **I-05** | `CalibrationPrior` | `C-04` $\to$ `C-06/C-07` | `contracts/schemas/calibration_prior_v1.schema.json`<br>`core/include/sih/contracts/calibration_prior.hpp` | `evidence_id`, `epoch_ns`, `bias_accel`, `bias_gyro`, `covariance`, `stationary_probability`, `validity` | Bias: $m/s^2, rad/s$; Covariance: $(m/s^2)^2, (rad/s)^2$<br>Frame: IMU body $b$<br>Clock: Monotonic epoch | Finite symmetric positive semi-definite (PSD) covariance; validity gate; prior evidence only (never mutates operational bias directly). |
-| **I-06** | `AlignmentEstimate` | `C-05` $\to$ `C-08/Vehicle Policy` | `contracts/schemas/alignment_estimate_v1.schema.json`<br>`core/include/sih/contracts/alignment_estimate.hpp` | `sequence`, `epoch_ns`, `q_v_b`, `covariance_3x3`, `status`, `observability`, `slip_probability` | Orientation: quaternion $[w,x,y,z]$, Covariance: $rad^2$<br>Frame: Active body $b$ to vehicle $v$<br>Clock: Monotonic epoch | Unit quaternion $w \ge 0$; covariance PSD; `status` in `[UNALIGNED, COARSE, FINE, UNCERTAIN, SLIP_SUSPECTED]`; failure gates vehicle-dependent constraints. |
-| **I-07** | `NavigationState` | `C-07/C-06` $\to$ `C-05/C-08/C-09/C-10/C-11` | `contracts/schemas/navigation_state_v1.schema.json`<br>`core/include/sih/contracts/navigation_state.hpp` | `sequence`, `epoch_ns`, `p_n`, `v_n`, `q_n_b`, `bias_accel_b`, `bias_gyro_b`, `origin_id`, `mode`, `validity` | Pos: $m$, Vel: $m/s$, Quat: unitless, Bias: $m/s^2, rad/s$<br>Frame: Local NED $n$, body $b$ to $n$<br>Clock: Core monotonic epoch | S2 canonical nominal state; strict sequence; finite numbers; canonical normalized quaternion; zero nullable physical fields when valid; mode transitions per S2 state machine. |
-| **I-08** | `NavigationUncertainty` | `C-07/C-06` $\to$ `C-09/C-10/C-11` | `contracts/schemas/navigation_uncertainty_v1.schema.json`<br>`core/include/sih/contracts/navigation_uncertainty.hpp` | `state_sequence`, `ordering_id`, `covariance_15x15`, `quality_flags` | Mixed SI variance/covariance<br>Frame: S2 error states $(\delta \theta, \delta v, \delta p, \delta b_a, \delta b_g)$<br>Clock: Matches `NavigationState` epoch | Exactly one uncertainty matrix per navigation state; symmetric PSD; defect surfaced immediately (no artificial numerical clipping). |
-| **I-09** | `LearnedCorrectionProposal` | `C-08` $\to$ `C-06/C-07` | `contracts/schemas/learned_correction_proposal_v1.schema.json`<br>`core/include/sih/contracts/learned_correction_proposal.hpp` | `proposal_id`, `epoch_ns`, `kind`, `value`, `covariance`, `confidence`, `validity_mask`, `window_id`, `deadline_ns` | Kind-specific SI<br>Frame: Declared explicitly<br>Clock: Monotonic core domain | Unique proposal ID; physical bounds check; PSD covariance; deadline enforcement; model/window hash match; classical fallback on reject/timeout. |
-| **I-10** | `ConstraintDecision` | `C-08/C-10` $\to$ `C-06/C-07/C-11` | `contracts/schemas/constraint_decision_v1.schema.json`<br>`core/include/sih/contracts/constraint_decision.hpp` | `decision_id`, `proposal_id`, `epoch_ns`, `source_type`, `accepted`, `reason`, `bound`, `applied_evidence_id` | Kind-specific SI<br>Frame: Declared by proposal<br>Clock: Monotonic core domain | Exactly one terminal decision per proposal; immutable audit log; rejection on uncertainty, timeout, out-of-distribution (OOD), or map ambiguity. |
-| **I-11** | `MapMatchResult` | `C-10` $\to$ `C-11/C-14` | `contracts/schemas/map_match_result_v1.schema.json`<br>`core/include/sih/contracts/map_match_result.hpp` | `decision_id`, `state_sequence`, `map_version`, `candidates`, `entropy`, `margin`, `confidence`, `status` | Residual: $m$, Probability: $[0.0, 1.0]$, Log-score: dimensionless<br>Frame: WGS84 + Projected NED<br>Clock: State epoch | Top-$K$ hypotheses ($0 \le K \le 5$); candidate list may be empty; map matching never mutates S2 navigation state; explicit `ABSTAIN/AMBIGUOUS/NO_CANDIDATE` statuses. |
-| **I-12** | `CanonicalGnssMeasurement` | `C-03/C-09` $\to$ `C-06/C-07` | `contracts/schemas/canonical_gnss_measurement_v1.schema.json`<br>`core/include/sih/contracts/canonical_gnss_measurement.hpp` | `measurement_id`, `state_epoch_ns`, `kind`, `z`, `R`, `origin_id`, `provider_evidence_ids`, `precheck` | Pos: $m$, Vel: $m/s$, Cov: $m^2, (m/s)^2$<br>Frame: Session local NED<br>Clock: Exact core state epoch | S2 dimensions; positive-definite innovation covariance; consume on first presentation; rejects stale or duplicate fixes. |
-| **I-13** | `IntegrityStatus` | `C-09` $\to$ `C-02/C-11` | `contracts/schemas/integrity_status_v1.schema.json` | `sequence`, `epoch_ns`, `sensor`, `gnss`, `navigation`, `alignment`, `model`, `map`, `recording`, `reasons` | Health enums + reason codes<br>Frame: N/A<br>Clock: Monotonic epoch | Separated integrity axes; no null axes; no coercion of degraded states to healthy; strict enum transitions. |
-| **I-14** | `OutageEvent` | `C-09/C-12` $\to$ `C-02/C-11` | `contracts/schemas/outage_event_v1.schema.json` | `event_id`, `start_ns`, `end_ns`, `type`, `reason`, `mask_id`, `hidden_fields` | $ns$<br>Frame: N/A<br>Clock: Monotonic session clock | Paired start/end epochs; non-overlapping simulated outages; software outage hides GNSS from estimator while preserving raw evidence. |
-| **I-15** | `ReacquisitionEvent` | `C-09` $\to$ `C-02/C-11/C-14` | `contracts/schemas/reacquisition_event_v1.schema.json` | `event_id`, `epoch_ns`, `fix_id`, `phase`, `nis`, `gate`, `dwell_count`, `accepted`, `reason`, `scientific_jump_m`, `display_policy` | Metric: $m$, Normalized Innovation Squared (NIS): dimensionless<br>Frame: Session NED<br>Clock: Core epoch | Multi-stage dwell and consistency check; zero first-fix privilege; reject biased returns; smooth UI display recovery separated from S2 state step. |
-| **I-16** | `UiNavigationSnapshot` | `C-11` $\to$ `C-02/C-13` | `contracts/schemas/ui_navigation_snapshot_v1.schema.json` | `sequence`, `epoch_ns`, `scientific_state`, `display_position`, `reference_position`, `uncertainty`, `integrity`, `map_result`, `labels`, `staleness_ms` | SI + display WGS84 degrees<br>Frame: Explicitly labelled frames<br>Clock: Scientific epoch + UI arrival | Decoupled display snapshot (~10 Hz); clear distinction between scientific estimate and smoothed display position; mandatory `LIVE`/`REPLAY` mode labels. |
-| **I-17** | `ReplayControlEvent` | `C-12/C-13` $\to$ `C-01/C-12` | `contracts/schemas/replay_control_event_v1.schema.json` | `event_id`, `command`, `target_epoch_ns`, `speed`, `scenario_id`, `actor`, `mode_label` | Time: $ns$, Speed multiplier: float<br>Frame: N/A<br>Clock: Replay control clock | Commands in `[PLAY, PAUSE, STEP, SEEK, STOP]`; no mutation of raw source logs; seek operation deterministically resets filter run identity. |
-| **I-18** | `SessionManifest` | `C-02` $\to$ `C-12/C-14/C-19` | `contracts/schemas/session_manifest_v1.schema.json` | `schema_version`, `session_id`, `status`, `clock_id`, `boot_id`, `app_build`, `device_profile`, `streams`, `chunks`, `loss_counts`, `config_hash`, `privacy_class` | Sizes: bytes, Time: $ns$<br>Frame: Declared per stream<br>Clock: Explicit clock identities | Cryptographic SHA-256 hash and byte size for every chunk file; relative paths only (zero absolute machine paths); explicit complete/incomplete status. |
-| **I-19** | `ModelManifest` | `C-16/C-17` $\to$ `C-08/C-14/C-19` | `contracts/schemas/model_manifest_v1.schema.json` | `schema_version`, `model_id`, `sha256`, `format`, `opset`, `runtime_min`, `input_contract`, `window`, `normalization`, `outputs`, `bounds`, `training_run`, `dataset_manifest`, `metrics`, `redistribution_status` | SI per head<br>Frame: Declared per head<br>Clock: Input window source clock | ONNX runtime opset compatibility whitelist; golden-tensor verification vector; strict parameter bounds; redistribution rights flag. |
-| **I-20** | `DatasetManifest` | `C-15` $\to$ `C-15/C-16/C-19` | `contracts/schemas/dataset_manifest_v1.schema.json` | `schema_version`, `dataset_id`, `source_revision`, `archive_hashes`, `file_hashes`, `schemas`, `units_status`, `group_ids`, `splits`, `exclusions`, `rights_status`, `privacy`, `redistribution` | File sizes and hashes<br>Frame: Declared per dataset schema<br>Clock: Declared per dataset schema | External private dataset partition tracking; zero leakage of ground-truth future labels to runtime inputs; raw dataset excluded from public Git. |
-| **I-21** | `MapGraphManifest` | `C-18` $\to$ `C-10/C-13/C-14/C-19` | `contracts/schemas/map_graph_manifest_v1.schema.json` | `schema_version`, `map_version`, `source_pbf_sha256`, `region_sha256`, `graph_sha256`, `display_sha256`, `toolchain`, `crs`, `bounds`, `notices`, `route_status` | Coordinates: WGS84 degrees<br>Frame: CRS84 / WGS84<br>Clock: Snapshot auxiliary | Immutable frozen PBF hash lineage; deterministic SQLite graph hash; bounding box coordinates; mandatory open-source attribution notices. |
-| **I-22** | `ConfigurationBundle` | `C-20` $\to$ `All Components` | `contracts/schemas/configuration_bundle_v1.schema.json` | `schema_version`, `config_id`, `sha256`, `environment`, `features`, `thresholds`, `component_versions` | Declared per parameter<br>Frame: Declared per parameter<br>Clock: Wall-clock independent | Immutable configuration snapshot; explicit thresholds (zero hidden fallback defaults for safety gates); replayed alongside replay logs. |
+### 2.1 Versioning Scheme
+- All schemas and generated contracts follow Semantic Versioning (`MAJOR.MINOR.PATCH`), beginning at `1.0.0`.
+- Every schema declares its canonical URI identifier: `https://sih26168.invalid/contracts/schemas/<name>_v<MAJOR>.schema.json`.
+
+### 2.2 Additive Fields and Backward Compatibility
+- **Additive Optional Fields:** An additive optional field increments the `MINOR` version ($1.0.0 \to 1.1.0$).
+- Existing consumers must continue to decode payloads when unknown optional fields are encountered.
+- Adding a mandatory/required field is strictly prohibited in minor revisions and constitutes a breaking change.
+
+### 2.3 Unknown-Field Handling by Tier
+- **Tier A (Durable Manifests and Configuration Bundles):** Reject unknown fields (`additionalProperties: false`). Manifests and configuration govern safety, reproducibility, and legal compliance; unapproved fields trigger immediate validation failure.
+- **Tier B (Streaming, Recording, and Event Logs):** Unknown optional fields are preserved during logging/re-serialization or ignored by older decoders (`additionalProperties: true` for future extensions), provided all required fields validate.
+- **Tier C (High-Frequency Direct JNI / C++ Engine):** Memory layout is pinned by an immutable struct layout and ABI version header. Any mismatch in payload size or ABI version halts the JNI boundary with an explicit `ABI_VERSION_MISMATCH` fault.
+
+### 2.4 Deprecation Process
+- Fields scheduled for retirement must be marked with `"deprecated": true` in their JSON Schema specification and annotated in target languages (`@Deprecated` in Kotlin, `[[deprecated]]` in C++20, and `warnings.warn(..., DeprecationWarning)` in Python).
+- Deprecated fields must remain supported for at least one minor release cycle before removal in a major version.
+
+### 2.5 Breaking Contract Changes
+- Any of the following requires a **`MAJOR` version increment** ($1.x.x \to 2.0.0$) and an approved Architecture Decision Record (ADR):
+  1. Renaming, removing, or changing the type of any existing field.
+  2. Modifying physical units, coordinate frame conventions, or quaternion ordering.
+  3. Modifying clock domain references or sequence monotonicity constraints.
+  4. Altering the mathematical error-state convention of the S2 navigation core.
+- Bindings in Kotlin, C++, and Python must be regenerated and validated concurrently via `python ci/generate_contract_bindings.py --check` in CI to eliminate cross-language drift.
 
 ---
 
-## 4. Implementation and Delivery Roadmap
+## 3. Kinematic, Frame, Orientation, and Timebase Conventions
 
-The delivery of schemas, codegen, bindings, and fixtures will proceed across the bounded issues:
+### 3.1 Coordinate Frames
+- **`WGS84 Geodetic`:** Earth-fixed reference frame. Latitude ($\phi$) and Longitude ($\lambda$) in decimal degrees ($[-90.0, 90.0]^\circ$ and $[-180.0, 180.0]^\circ$). Ellipsoidal height ($h$) in meters above the WGS84 reference ellipsoid.
+- **`Local NED (n)`:** North-East-Down Cartesian tangent frame. Origin is fixed at the session anchor point ($\phi_0, \lambda_0, h_0$) with an immutable `origin_id`. $+x$ points True North, $+y$ points True East, and $+z$ points Downward along the local gravity vector.
+- **`IMU Body (b)`:** Physical triaxial sensor frame rigidly attached to the phone IMU. For S2 core processing, $+x$ is forward, $+y$ is right, and $+z$ is down.
+- **`Android Sensor Frame`:** Raw sensor coordinates from Android `SensorEvent` ($+x$ right, $+y$ up, $+z$ out of screen). Converted deterministically to IMU body frame $b$ by component `C-03` prior to batching.
+- **`Vehicle Body (v)`:** Structural reference frame of the moving vehicle ($+x$ forward along longitudinal driving axis, $+y$ right along transversal axle, $+z$ down orthogonal to chassis floor).
+
+### 3.2 Orientation and Active Quaternions
+- **Representation:** Active Hamilton rotation quaternion transforming vectors from body frame $b$ to navigation frame $n$:
+  $$\mathbf{v}^n = \mathbf{q}_n^b \otimes \mathbf{v}^b \otimes (\mathbf{q}_n^b)^*$$
+- **Element Ordering:** Strictly scalar-first $\mathbf{q} = [w, x, y, z]$, where $w$ is the real scalar component and $[x, y, z]$ is the imaginary vector component.
+- **Canonical Constraint:** Quaternions are unit-normalized ($\|\mathbf{q}\| = 1.0 \pm 10^{-6}$) and canonicalized such that $w \ge 0$. If $w < 0$, the quaternion is negated: $\mathbf{q} \leftarrow -\mathbf{q}$.
+- **S2 Error-State Convention:** 15-state right-multiplicative error-state Kalman filter (ESKF) convention:
+  $$\delta \mathbf{x} = [\delta \boldsymbol{\theta}^T, \, \delta \mathbf{v}^T, \, \delta \mathbf{p}^T, \, \delta \mathbf{b}_a^T, \, \delta \mathbf{b}_g^T]^T \in \mathbb{R}^{15}$$
+  where $\delta \boldsymbol{\theta}$ represents small orientation error angles in radians.
+
+### 3.3 Timebase and Monotonic Clocks
+- **Canonical Scientific Epoch (`epoch_ns`):** Signed 64-bit integer nanoseconds (`int64`, non-decreasing per session). Never depends on device wall clock or UTC.
+- **Hardware Arrival Clock (`arrival_elapsed_realtime_ns`):** Signed 64-bit integer nanoseconds from `android.os.SystemClock.elapsedRealtimeNanos()`. Monotonic per boot cycle, immune to network time adjustments or NTP steps.
+- **Clock Domain Identifiers:** Every stream explicitly records its `clock_id` to prevent cross-domain contamination.
+
+### 3.4 Ingestion, Out-of-Order, and Duplicate Semantics
+- **Evidence Uniqueness:** Every observation carries a globally non-empty `evidence_id`. The S2 core enforces first-presentation consumption; duplicate evidence IDs are immediately dropped with duplicate counters incremented.
+- **Stale Samples:** Any sample arriving with $t_{\text{source}} < t_{\text{latest\_accepted}}$ is gated out from S2 core propagation. The event is persisted in raw logs with an explicit rejection reason code.
+- **Out-of-Order Windows:** Component `C-03` maintains a strictly bounded reorder buffer (maximum window $\Delta t = 50\,\text{ms}$). Samples arriving beyond this window are flagged as `TIME_INVERSION` and dropped from core estimation.
+
+---
+
+## 4. Semantic and Physical Validity Rules
+
+Data validation enforces mathematical and physical boundaries in addition to syntactic schema checks:
+
+### 4.1 Numerical Hygiene and Finite-Number Enforcement
+- All scalar and floating-point array elements must satisfy `std::isfinite()` (IEEE 754).
+- Payloads containing `NaN`, `+Infinity`, or `-Infinity` are rejected immediately with a `NUMERICAL_NONFINITE` fault.
+
+### 4.2 Physical Range Envelopes
+- **Linear Acceleration:** $\|\mathbf{a}\| \le 160.0\,\text{m/s}^2$ ($\approx 16\,g$).
+- **Angular Velocity:** $\|\boldsymbol{\omega}\| \le 35.0\,\text{rad/s}$ ($\approx 2000^\circ/\text{s}$).
+- **Linear Velocity:** $\|\mathbf{v}\| \le 100.0\,\text{m/s}$ ($\approx 360\,\text{km/h}$).
+- **Geodetic Bounds:** Latitude $\in [-90.0, 90.0]^\circ$, Longitude $\in [-180.0, 180.0]^\circ$.
+- **Propagation Step Size:** Time delta for S2 propagation steps is strictly bounded:
+  $$10^{-6}\,\text{s} \le \Delta t \le 0.20\,\text{s} \quad (5\,\text{Hz} \le f \le 1\,\text{MHz})$$
+
+### 4.3 Covariance and Uncertainty Integrity
+- **Positive Semi-Definiteness (PSD):** All covariance matrices ($3 \times 3$ or $15 \times 15$) must be symmetric ($P = P^T$) and positive semi-definite (all eigenvalues $\lambda_i \ge 0$).
+- **Variance Floors:** Mandatory minimum variance thresholds prevent filter overconfidence:
+  $$\sigma_p^2 \ge 10^{-4}\,\text{m}^2, \quad \sigma_v^2 \ge 10^{-4}\,(\text{m/s})^2, \quad \sigma_\theta^2 \ge 10^{-6}\,\text{rad}^2$$
+- **Defect Handling:** If a numerical defect or non-finite covariance occurs, an explicit `PSD_DEFECT` fault is emitted. Silently clipping matrices or resetting to identity without logging is strictly prohibited.
+
+### 4.4 Explicit Representation of GNSS Outages and Unavailability
+- GNSS state is communicated via explicit enums: `GNSS_HEALTHY`, `GNSS_OUTAGE`, `REACQUISITION_PENDING`, `REACQUIRED`, `DEGRADED`.
+- When GNSS fixes are unavailable, the provider emits `LocationGnssFix` with a `field_mask` clearing position/velocity or sets an explicit `null` payload. The estimator transitions to dead-reckoning (`BLACKOUT_DR`) without synthesizing artificial measurements.
+
+### 4.5 Dropped and Missing Data Representation
+- Gaps and packet loss are represented explicitly via `gap_flags` in `ImuBatch` and loss counters in `SensorQualityStatus`. Missing sensor pairs are never interpolated or synthetically hallucinated for S2 propagation.
+
+---
+
+## 5. Normative Interface Specifications (I-01 through I-22)
+
+### I-01: RawSensorSample
+- **Producer / Consumer:** `C-01 (Android Acquisition)` / `C-12 (Replay)` $\to$ `C-02 (Writer)` / `C-03 (Timebase Adapter)`
+- **Direction:** Android Sensor HAL / Event callback $\to$ Navigation Worker
+- **Schema ID / Version:** `https://sih26168.invalid/contracts/schemas/raw_sensor_sample_v1.schema.json` / `1.0.0`
+- **Serialization:** Tier B (JSON Schema + append-only JSONL chunk)
+- **Required Fields:** `schema_version`, `evidence_id`, `session_id`, `stream_id`, `sequence`, `source_timestamp_ns`, `arrival_elapsed_realtime_ns`, `sensor_type`, `values`, `accuracy`, `source_metadata`
+- **Optional Fields:** None (all channels present or explicitly null by sensor type)
+- **Units:** Accel: $\text{m/s}^2$; Gyro: $\text{rad/s}$; Mag: $\mu\text{T}$; Temp: $^\circ\text{C}$
+- **Coordinate Frame:** Android raw sensor body axes
+- **Clock Domain:** Hardware arrival `android.elapsed_realtime_ns`
+- **Sequence & Ordering:** Monotonically increasing sequence integer per `stream_id`; gaps recorded explicitly
+- **Quality & Validity:** Hardware accuracy level ($0 = \text{Unreliable}, 3 = \text{High}$); finite values check
+- **Rejection Behaviour:** Malformed, non-finite, or backwards-timestamped samples are logged to error stream and excluded from core batching
+
+---
+
+### I-02: LocationGnssFix
+- **Producer / Consumer:** `C-01 (Android Acquisition)` / `C-12 (Replay)` $\to$ `C-02 (Writer)` / `C-03 (Timebase Adapter)` / `C-05 (Alignment)` / `C-09 (Integrity Controller)`
+- **Direction:** Android LocationManager callback $\to$ Ingestion Pipeline
+- **Schema ID / Version:** `https://sih26168.invalid/contracts/schemas/location_gnss_fix_v1.schema.json` / `1.0.0`
+- **Serialization:** Tier B (JSON Schema + JSONL chunk)
+- **Required Fields:** `schema_version`, `evidence_id`, `provider`, `source_timestamp_ns`, `arrival_elapsed_realtime_ns`, `lat_deg`, `lon_deg`, `alt_m`, `hacc_m`, `vacc_m`, `speed_mps`, `speed_acc_mps`, `bearing_deg`, `bearing_acc_deg`, `is_mock`, `field_mask`
+- **Optional Fields:** `alt_m`, `vacc_m`, `speed_mps`, `speed_acc_mps`, `bearing_deg`, `bearing_acc_deg` (governed by bitmask in `field_mask`)
+- **Units:** Coordinates: degrees; Altitude / Accuracy: meters; Speed: $\text{m/s}$; Bearing: degrees
+- **Coordinate Frame:** WGS84 Geodetic reference ellipsoid
+- **Clock Domain:** `android.elapsed_realtime_ns`
+- **Sequence & Ordering:** Monotonic sequence per provider stream; evidence consumed once
+- **Quality & Validity:** Accuracy floors ($hacc \ge 0.1\,\text{m}$); mock fix flag preserved; range check: $\phi \in [-90, 90]$, $\lambda \in [-180, 180]$
+- **Rejection Behaviour:** Fixes failing covariance or age checks are tagged with rejection reason; simulated outage hides fix from estimator but preserves it in recording
+
+---
+
+### I-03: ImuBatch
+- **Producer / Consumer:** `C-03 (Timebase Adapter)` $\to$ `C-06 (JNI Adapter)` / `C-07 (C++ Core)` / `C-08 (Learned Adapter)`
+- **Direction:** Kotlin Navigation Service $\to$ C++ Native Core (direct memory buffer)
+- **Schema ID / Version:** `https://sih26168.invalid/contracts/schemas/imu_batch_v1.schema.json` / `1.0.0`
+- **Serialization:** Tier C (Direct byte buffer with C++ struct layout `core/include/sih/contracts/imu_batch.hpp`)
+- **Required Fields:** `batch_id`, `samples`, `first_seq`, `last_seq`, `gap_flags`, `clock_id`
+- **Optional Fields:** None (batch is strictly uniform)
+- **Units:** Accel: $\text{m/s}^2$; Gyro: $\text{rad/s}$; Delta time $dt$: seconds
+- **Coordinate Frame:** Physical IMU body frame $b$
+- **Clock Domain:** Monotonic session clock domain (`clock_id`)
+- **Sequence & Ordering:** Strict monotonically increasing timestamps: $t_{k+1} > t_k$; $10^{-6} \le dt \le 0.20\,\text{s}$
+- **Quality & Validity:** Finite numbers; synchronized accel-gyro pairs (zero interpolation); gaps flagged in bitfield
+- **Rejection Behaviour:** Batches with non-finite values or timing inversions halt core propagation with `CORRUPT_BATCH`
+
+---
+
+### I-04: SensorQualityStatus
+- **Producer / Consumer:** `C-01 (Android Acquisition)` / `C-03 (Timebase Adapter)` $\to$ `C-02 (Writer)` / `C-04 (Calibration)` / `C-05 (Alignment)` / `C-08 (Learned Adapter)` / `C-09 (Integrity Controller)`
+- **Direction:** Ingestion Pipeline $\to$ System Health Monitors
+- **Schema ID / Version:** `https://sih26168.invalid/contracts/schemas/sensor_quality_status_v1.schema.json` / `1.0.0`
+- **Serialization:** Tier B (JSON Schema + JSONL)
+- **Required Fields:** `sequence`, `epoch_ns`, `stream_states`, `gap_stats`, `batch_stats`, `thermal`, `battery`, `storage`, `lifecycle`
+- **Optional Fields:** `thermal`, `battery` (nullable if device HAL denies access)
+- **Units:** Rate: $\text{Hz}$; Dropped samples: count; Battery: percent; Storage: bytes
+- **Coordinate Frame:** N/A
+- **Clock Domain:** `android.elapsed_realtime_ns`
+- **Sequence & Ordering:** Monotonic status sequence
+- **Quality & Validity:** Explicit status enums: `HEALTHY`, `DEGRADED`, `FAILED`, `UNAVAILABLE`
+- **Rejection Behaviour:** Unrecognized states default to `FAILED` to ensure fail-closed operation
+
+---
+
+### I-05: CalibrationPrior
+- **Producer / Consumer:** `C-04 (Calibration Manager)` $\to$ `C-06 (JNI Adapter)` / `C-07 (C++ Core)`
+- **Direction:** Calibration Service $\to$ S2 Initialization Engine
+- **Schema ID / Version:** `https://sih26168.invalid/contracts/schemas/calibration_prior_v1.schema.json` / `1.0.0`
+- **Serialization:** Tier C (C++ POD struct `core/include/sih/contracts/calibration_prior.hpp`)
+- **Required Fields:** `evidence_id`, `epoch_ns`, `bias_accel`, `bias_gyro`, `covariance`, `stationary_probability`, `validity`
+- **Optional Fields:** `temperature_c` (optional calibration profile index)
+- **Units:** Accel bias: $\text{m/s}^2$; Gyro bias: $\text{rad/s}$; Covariances: squared SI
+- **Coordinate Frame:** IMU body frame $b$
+- **Clock Domain:** Monotonic scientific epoch
+- **Sequence & Ordering:** Consumed exactly once during stationary alignment or re-initialization
+- **Quality & Validity:** Symmetric PSD covariance; stationary probability $P(\text{stat}) \in [0.0, 1.0]$
+- **Rejection Behaviour:** Non-PSD covariance or invalid flags trigger conservative default initialization prior
+
+---
+
+### I-06: AlignmentEstimate
+- **Producer / Consumer:** `C-05 (Alignment Estimator)` $\to$ `C-08 (Learned Adapter)` / Vehicle Constraint Engine
+- **Direction:** Alignment Estimator $\to$ Constraint Engine
+- **Schema ID / Version:** `https://sih26168.invalid/contracts/schemas/alignment_estimate_v1.schema.json` / `1.0.0`
+- **Serialization:** Tier C (C++ POD struct `core/include/sih/contracts/alignment_estimate.hpp`)
+- **Required Fields:** `sequence`, `epoch_ns`, `q_v_b`, `covariance_3x3`, `status`, `observability`, `slip_probability`
+- **Optional Fields:** `slip_probability` (nullable if slip detector uninitialized)
+- **Units:** Quaternions: unitless; Covariance: $\text{rad}^2$
+- **Coordinate Frame:** Active rotation from IMU body $b$ to vehicle frame $v$
+- **Clock Domain:** Monotonic core epoch
+- **Sequence & Ordering:** Latest valid posterior; updates only on validated alignment transitions
+- **Quality & Validity:** Unit quaternion constraint $\|q\| = 1.0 \pm 10^{-6}, w \ge 0$; covariance PSD
+- **Rejection Behaviour:** Status in `[UNCERTAIN, SLIP_SUSPECTED]` immediately disables alignment-dependent vehicle velocity constraints
+
+---
+
+### I-07: NavigationState
+- **Producer / Consumer:** `C-07 (C++ Core)` / `C-06 (JNI)` $\to$ `C-05 (Alignment)` / `C-08 (Learned Adapter)` / `C-09 (Integrity)` / `C-10 (Map Matcher)` / `C-11 (Repository)`
+- **Direction:** C++ S2 Core $\to$ Navigation Dispatcher / State Repository
+- **Schema ID / Version:** `https://sih26168.invalid/contracts/schemas/navigation_state_v1.schema.json` / `1.0.0`
+- **Serialization:** Tier C (C++ canonical struct `core/include/sih/contracts/navigation_state.hpp`)
+- **Required Fields:** `sequence`, `epoch_ns`, `p_n`, `v_n`, `q_n_b`, `bias_accel_b`, `bias_gyro_b`, `origin_id`, `mode`, `validity`
+- **Optional Fields:** None (all nominal physical states are mandatory when valid)
+- **Units:** Position $\mathbf{p}$: meters; Velocity $\mathbf{v}$: $\text{m/s}$; Quat $\mathbf{q}$: unitless; Bias $\mathbf{b}_a$: $\text{m/s}^2$; Bias $\mathbf{b}_g$: $\text{rad/s}$
+- **Coordinate Frame:** Local tangent NED frame $n$; active rotation $b \to n$
+- **Clock Domain:** Canonical monotonic scientific epoch
+- **Sequence & Ordering:** Strictly increasing state sequence integer; published at nominal rate ($\sim 10\,\text{Hz}$)
+- **Quality & Validity:** Finite numbers; unit quaternion $w \ge 0$; `origin_id` matches current session anchor
+- **Rejection Behaviour:** On numeric overflow or filter divergence, sets `validity = INVALID`, enters `FAULT` mode, and halts scientific output
+
+---
+
+### I-08: NavigationUncertainty
+- **Producer / Consumer:** `C-07 (C++ Core)` / `C-06 (JNI)` $\to$ `C-09 (Integrity)` / `C-10 (Map Matcher)` / `C-11 (Repository)`
+- **Direction:** C++ S2 Core $\to$ Navigation Dispatcher
+- **Schema ID / Version:** `https://sih26168.invalid/contracts/schemas/navigation_uncertainty_v1.schema.json` / `1.0.0`
+- **Serialization:** Tier C (C++ struct `core/include/sih/contracts/navigation_uncertainty.hpp`)
+- **Required Fields:** `state_sequence`, `ordering_id`, `covariance_15x15`, `quality_flags`
+- **Optional Fields:** None
+- **Units:** Mixed squared SI units matching S2 error states
+- **Coordinate Frame:** S2 error states $(\delta \boldsymbol{\theta}, \delta \mathbf{v}, \delta \mathbf{p}, \delta \mathbf{b}_a, \delta \mathbf{b}_g)$
+- **Clock Domain:** Identical epoch to corresponding `NavigationState`
+- **Sequence & Ordering:** Exactly one uncertainty payload per `NavigationState` sequence ID
+- **Quality & Validity:** Symmetric positive semi-definite; variance floors enforced
+- **Rejection Behaviour:** Invalidate state and surface `PSD_DEFECT` fault if matrix is non-symmetric or non-finite
+
+---
+
+### I-09: LearnedCorrectionProposal
+- **Producer / Consumer:** `C-08 (Learned Adapter)` $\to$ `C-06 (JNI)` / `C-07 (C++ Core)`
+- **Direction:** ONNX Runtime Mobile Worker $\to$ S2 Kalman Filter
+- **Schema ID / Version:** `https://sih26168.invalid/contracts/schemas/learned_correction_proposal_v1.schema.json` / `1.0.0`
+- **Serialization:** Tier C (C++ struct `core/include/sih/contracts/learned_correction_proposal.hpp`)
+- **Required Fields:** `proposal_id`, `epoch_ns`, `kind`, `value`, `covariance`, `confidence`, `validity_mask`, `window_id`, `deadline_ns`
+- **Optional Fields:** Head values permitted to be absent if disabled by manifest
+- **Units:** Kind-specific SI (velocity: $\text{m/s}$; displacement: $\text{m}$)
+- **Coordinate Frame:** Explicitly declared coordinate frame (IMU body $b$ or vehicle frame $v$)
+- **Clock Domain:** Monotonic core epoch
+- **Sequence & Ordering:** Unique `proposal_id`; consumed before `deadline_ns`
+- **Quality & Validity:** Physical bounding box check; PSD covariance; confidence score $\in [0.0, 1.0]$
+- **Rejection Behaviour:** Proposals exceeding deadlines, out-of-distribution (OOD), or failing bounds are rejected; filter continues on classical baseline
+
+---
+
+### I-10: ConstraintDecision
+- **Producer / Consumer:** `C-08 (Learned Adapter)` / `C-10 (Map Matcher)` $\to$ `C-06 (JNI)` / `C-07 (C++ Core)` / `C-11 (Repository)`
+- **Direction:** Filter Innovation Gate $\to$ Audit Logging Pipeline
+- **Schema ID / Version:** `https://sih26168.invalid/contracts/schemas/constraint_decision_v1.schema.json` / `1.0.0`
+- **Serialization:** Tier C (C++ struct `core/include/sih/contracts/constraint_decision.hpp`)
+- **Required Fields:** `decision_id`, `proposal_id`, `epoch_ns`, `source_type`, `accepted`, `reason`, `bound`, `applied_evidence_id`
+- **Optional Fields:** `applied_evidence_id` (nullable when `accepted == false`)
+- **Units:** Dimensionless decision codes; residual units in SI
+- **Coordinate Frame:** Matches input proposal
+- **Clock Domain:** Monotonic core epoch
+- **Sequence & Ordering:** Exactly one terminal decision per proposal ID
+- **Quality & Validity:** Explicit rejection reason codes (`OOD`, `TIMEOUT`, `MAHALANOBIS_GATE_EXCEEDED`, `AMBIGUOUS_MAP`)
+- **Rejection Behaviour:** Unaccepted proposals never touch filter state and are preserved in audit trail
+
+---
+
+### I-11: MapMatchResult
+- **Producer / Consumer:** `C-10 (Map Matcher)` $\to$ `C-11 (Repository)` / `C-14 (Offline Analyzer)`
+- **Direction:** Map Matching Engine $\to$ Navigation State Repository
+- **Schema ID / Version:** `https://sih26168.invalid/contracts/schemas/map_match_result_v1.schema.json` / `1.0.0`
+- **Serialization:** Tier C (C++ struct `core/include/sih/contracts/map_match_result.hpp`)
+- **Required Fields:** `decision_id`, `state_sequence`, `map_version`, `candidates`, `entropy`, `margin`, `confidence`, `status`
+- **Optional Fields:** `candidates` list may be empty ($K = 0$)
+- **Units:** Residual: meters; Confidence: $[0.0, 1.0]$; Entropy: dimensionless
+- **Coordinate Frame:** Projected session NED and WGS84 edge geometry
+- **Clock Domain:** Matches corresponding `NavigationState` epoch
+- **Sequence & Ordering:** Top-$K$ hypotheses ($0 \le K \le 5$) ordered by posterior probability
+- **Quality & Validity:** Map version matches loaded SQLite graph; candidate probabilities sum to 1.0
+- **Rejection Behaviour:** When ambiguous or off-road, status is `AMBIGUOUS` or `NO_CANDIDATE`; map matching **never** overwrites or mutates S2 navigation state
+
+---
+
+### I-12: CanonicalGnssMeasurement
+- **Producer / Consumer:** `C-03 (Timebase Adapter)` / `C-09 (Integrity Controller)` $\to$ `C-06 (JNI)` / `C-07 (C++ Core)`
+- **Direction:** Integrity Controller $\to$ C++ Core Innovation Update
+- **Schema ID / Version:** `https://sih26168.invalid/contracts/schemas/canonical_gnss_measurement_v1.schema.json` / `1.0.0`
+- **Serialization:** Tier C (C++ struct `core/include/sih/contracts/canonical_gnss_measurement.hpp`)
+- **Required Fields:** `measurement_id`, `state_epoch_ns`, `kind`, `z`, `R`, `origin_id`, `provider_evidence_ids`, `precheck`
+- **Optional Fields:** Velocity measurement channel nullable by `kind`
+- **Units:** Position: meters; Velocity: $\text{m/s}$; Covariance: $\text{m}^2, (\text{m/s})^2$
+- **Coordinate Frame:** Local tangent NED frame $n$
+- **Clock Domain:** Core state monotonic epoch
+- **Sequence & Ordering:** Unique measurement ID; consumed once
+- **Quality & Validity:** Positive-definite measurement noise covariance $R$; innovation precheck gates
+- **Rejection Behaviour:** Updates failing chi-squared innovation gate ($\chi^2 > \gamma$) are rejected and logged to `ReacquisitionEvent`
+
+---
+
+### I-13: IntegrityStatus
+- **Producer / Consumer:** `C-09 (Integrity Controller)` $\to$ `C-02 (Writer)` / `C-11 (Repository)`
+- **Direction:** Integrity Supervisor $\to$ State Repository / Output Publisher
+- **Schema ID / Version:** `https://sih26168.invalid/contracts/schemas/integrity_status_v1.schema.json` / `1.0.0`
+- **Serialization:** Tier B (JSON Schema + JSONL)
+- **Required Fields:** `sequence`, `epoch_ns`, `sensor`, `gnss`, `navigation`, `alignment`, `model`, `map`, `recording`, `reasons`
+- **Optional Fields:** None (all health axes must be explicitly populated)
+- **Units:** Dimensionless enum codes
+- **Coordinate Frame:** N/A
+- **Clock Domain:** Monotonic scientific epoch
+- **Sequence & Ordering:** Monotonically increasing integrity sequence
+- **Quality & Validity:** Separated health axes: `[HEALTHY, DEGRADED, FAILED, UNAVAILABLE]`; no axis may be null
+- **Rejection Behaviour:** Faults on any axis cannot be coerced to healthy; surfaces directly in UI telemetry
+
+---
+
+### I-14: OutageEvent
+- **Producer / Consumer:** `C-09 (Integrity)` / `C-12 (Replay)` $\to$ `C-02 (Writer)` / `C-11 (Repository)`
+- **Direction:** Outage Generator / Detection Logic $\to$ State Repository
+- **Schema ID / Version:** `https://sih26168.invalid/contracts/schemas/outage_event_v1.schema.json` / `1.0.0`
+- **Serialization:** Tier B (JSON Schema + JSONL)
+- **Required Fields:** `event_id`, `start_ns`, `end_ns`, `type`, `reason`, `mask_id`, `hidden_fields`
+- **Optional Fields:** `end_ns` (nullable while outage event is ongoing)
+- **Units:** Nanoseconds
+- **Coordinate Frame:** N/A
+- **Clock Domain:** Monotonic session clock
+- **Sequence & Ordering:** Paired start/end timestamps; non-overlapping outage intervals
+- **Quality & Validity:** Type in `[NATURAL, TUNNEL, HARDWARE_LOSS, SOFTWARE_SIMULATED]`
+- **Rejection Behaviour:** Software simulated outages mask GNSS from the estimator but leave raw evidence logged intact
+
+---
+
+### I-15: ReacquisitionEvent
+- **Producer / Consumer:** `C-09 (Integrity Controller)` $\to$ `C-02 (Writer)` / `C-11 (Repository)` / `C-14 (Offline Analyzer)`
+- **Direction:** Reacquisition Logic $\to$ UI StateFlow / Evaluation Stream
+- **Schema ID / Version:** `https://sih26168.invalid/contracts/schemas/reacquisition_event_v1.schema.json` / `1.0.0`
+- **Serialization:** Tier B (JSON Schema + JSONL)
+- **Required Fields:** `event_id`, `epoch_ns`, `fix_id`, `phase`, `nis`, `gate`, `dwell_count`, `accepted`, `reason`, `scientific_jump_m`, `display_policy`
+- **Optional Fields:** `scientific_jump_m` (nullable prior to acceptance)
+- **Units:** Distance: meters; Normalized Innovation Squared (NIS): dimensionless
+- **Coordinate Frame:** Local tangent NED frame $n$
+- **Clock Domain:** Core scientific epoch
+- **Sequence & Ordering:** Multi-stage phase sequence: `[CANDIDATE, DWELL_VERIFYING, ACCEPTED, REJECTED]`
+- **Quality & Validity:** Zero first-fix privilege; multi-sample dwell verification; finite NIS
+- **Rejection Behaviour:** Biased returning fixes failing dwell or innovation gates are rejected; filter remains in dead-reckoning
+
+---
+
+### I-16: UiNavigationSnapshot
+- **Producer / Consumer:** `C-11 (Repository / Publisher)` $\to$ `C-02 (Writer)` / `C-13 (UI)`
+- **Direction:** Navigation Service $\to$ Compose UI StateFlow
+- **Schema ID / Version:** `https://sih26168.invalid/contracts/schemas/ui_navigation_snapshot_v1.schema.json` / `1.0.0`
+- **Serialization:** Tier B (JSON Schema + StateFlow immutable object)
+- **Required Fields:** `sequence`, `epoch_ns`, `scientific_state`, `display_position`, `reference_position`, `uncertainty`, `integrity`, `map_result`, `labels`, `staleness_ms`
+- **Optional Fields:** `display_position`, `reference_position` (nullable if display map or GNSS reference unavailable)
+- **Units:** Geodetic coordinates: degrees; Speed: $\text{m/s}$; Uncertainty: meters; Staleness: milliseconds
+- **Coordinate Frame:** Explicitly labelled frames (Scientific: NED; Display/Reference: WGS84 geodetic)
+- **Clock Domain:** Scientific epoch + UI system arrival time
+- **Sequence & Ordering:** Published at decoupled display rate ($\sim 10\,\text{Hz}$); latest-wins for rendering
+- **Quality & Validity:** Mandatory mode labels in `[LIVE, REPLAY, SIMULATED_OUTAGE, DEMO]`; strict separation of raw scientific estimate and display-smoothed position
+- **Rejection Behaviour:** Stale data ($> 500\,\text{ms}$) displayed with prominent UI `STALE` warning banner; never synthesizes fake movement
+
+---
+
+### I-17: ReplayControlEvent
+- **Producer / Consumer:** `C-12 (Replay)` / `C-13 (UI)` $\to$ `C-01 (Acquisition)` / `C-12 (Replay Engine)`
+- **Direction:** User Interaction / Scripted Scenario $\to$ Replay Controller
+- **Schema ID / Version:** `https://sih26168.invalid/contracts/schemas/replay_control_event_v1.schema.json` / `1.0.0`
+- **Serialization:** Tier B (JSON Schema + JSON)
+- **Required Fields:** `event_id`, `command`, `target_epoch_ns`, `speed`, `scenario_id`, `actor`, `mode_label`
+- **Optional Fields:** `target_epoch_ns` (nullable for pause/play commands)
+- **Units:** Time: nanoseconds; Speed multiplier: float ($0.1\times$ to $10.0\times$)
+- **Coordinate Frame:** N/A
+- **Clock Domain:** Replay control clock domain
+- **Sequence & Ordering:** Monotonically ordered control sequence
+- **Quality & Validity:** Commands in `[PLAY, PAUSE, STEP, SEEK, STOP]`
+- **Rejection Behaviour:** Invalid commands rejected with logged reason; seek operations deterministically re-initialize the S2 core
+
+---
+
+### I-18: SessionManifest
+- **Producer / Consumer:** `C-02 (Writer)` $\to$ `C-12 (Replay)` / `C-14 (Analyzer)` / `C-19 (Validator)`
+- **Direction:** Session Storage $\to$ Distribution / Evaluation Package
+- **Schema ID / Version:** `https://sih26168.invalid/contracts/schemas/session_manifest_v1.schema.json` / `1.0.0`
+- **Serialization:** Tier A (JSON Schema Draft 2020-12, `additionalProperties: false`)
+- **Required Fields:** `schema_version`, `session_id`, `status`, `clock_id`, `boot_id`, `app_build`, `device_profile`, `streams`, `chunks`, `loss_counts`, `config_hash`, `privacy_class`
+- **Optional Fields:** Device profile hardware metadata nullable if denied by security policy
+- **Units:** Byte sizes, nanosecond durations, integer sample counts
+- **Coordinate Frame:** Declared per stream
+- **Clock Domain:** Explicit clock identifiers declared
+- **Sequence & Ordering:** Exact file chunk order and SHA-256 digest array
+- **Quality & Validity:** Cryptographic SHA-256 for every chunk file; strictly relative paths; status in `[COMPLETE, INCOMPLETE, EVIDENCE_DEGRADED]`
+- **Rejection Behaviour:** Corrupt, tampered, or missing chunk files fail session loading
+
+---
+
+### I-19: ModelManifest
+- **Producer / Consumer:** `C-16 (Training)` / `C-17 (Packager)` $\to$ `C-08 (Learned Adapter)` / `C-14 (Analyzer)` / `C-19 (Validator)`
+- **Direction:** Build Pipeline $\to$ Runtime Deployment Package
+- **Schema ID / Version:** `https://sih26168.invalid/contracts/schemas/model_manifest_v1.schema.json` / `1.0.0`
+- **Serialization:** Tier A (JSON Schema Draft 2020-12, `additionalProperties: false`)
+- **Required Fields:** `schema_version`, `model_id`, `sha256`, `format`, `opset`, `runtime_min`, `input_contract`, `window`, `normalization`, `outputs`, `bounds`, `training_run`, `dataset_manifest`, `metrics`, `redistribution_status`
+- **Optional Fields:** `metrics` (optional before evaluation completion)
+- **Units:** SI units per model head; window length in samples/milliseconds
+- **Coordinate Frame:** Declared explicitly for each input/output tensor
+- **Clock Domain:** Source window clock domain
+- **Sequence & Ordering:** Immutable model version identifier
+- **Quality & Validity:** Hash verification, ONNX opset whitelist, golden tensor verification vector, redistribution rights flag
+- **Rejection Behaviour:** Model bundles failing opset check or golden vector tolerance ($10^{-5}$) are rejected; app falls back to classical model-disabled mode
+
+---
+
+### I-20: DatasetManifest
+- **Producer / Consumer:** `C-15 (Data Ingestion)` $\to$ `C-15 (Firewall)` / `C-16 (Training)` / `C-19 (Validator)`
+- **Direction:** Private Data Preparation $\to$ Training Harness
+- **Schema ID / Version:** `https://sih26168.invalid/contracts/schemas/dataset_manifest_v1.schema.json` / `1.0.0`
+- **Serialization:** Tier A (JSON Schema Draft 2020-12, `additionalProperties: false`)
+- **Required Fields:** `schema_version`, `dataset_id`, `source_revision`, `archive_hashes`, `file_hashes`, `schemas`, `units_status`, `group_ids`, `splits`, `exclusions`, `rights_status`, `privacy`, `redistribution`
+- **Optional Fields:** None (full partition and rights lineage mandatory)
+- **Units:** Source-specific units with explicit conversion mappings
+- **Coordinate Frame:** Declared per subset schema
+- **Clock Domain:** Source clock semantics recorded
+- **Sequence & Ordering:** Immutable file list and grouped parent journey splits
+- **Quality & Validity:** Zero overlap between train/validation/test journey groups; runtime-feature and forbidden ground-truth label firewall check
+- **Rejection Behaviour:** Missing file hashes or leakage canary failures immediately quarantine the dataset and abort training
+
+---
+
+### I-21: MapGraphManifest
+- **Producer / Consumer:** `C-18 (Map Tooling)` $\to$ `C-10 (Map Matcher)` / `C-13 (UI)` / `C-14 (Analyzer)` / `C-19 (Validator)`
+- **Direction:** Map Build Toolchain $\to$ Runtime Application Package
+- **Schema ID / Version:** `https://sih26168.invalid/contracts/schemas/map_graph_manifest_v1.schema.json` / `1.0.0`
+- **Serialization:** Tier A (JSON Schema Draft 2020-12, `additionalProperties: false`)
+- **Required Fields:** `schema_version`, `map_version`, `source_pbf_sha256`, `region_sha256`, `graph_sha256`, `display_sha256`, `toolchain`, `crs`, `bounds`, `notices`, `route_status`
+- **Optional Fields:** `display_sha256` (nullable until PMTiles vector tile build completes)
+- **Units:** Coordinates: decimal degrees; File size: bytes
+- **Coordinate Frame:** CRS84 / WGS84
+- **Clock Domain:** Build timestamp auxiliary
+- **Sequence & Ordering:** Immutable map release version
+- **Quality & Validity:** SHA-256 match on source PBF and generated SQLite road graph; OpenStreetMap legal attribution notices present; bounding box validation
+- **Rejection Behaviour:** Hash mismatch rejects map package; runtime falls back to unmatched navigation
+
+---
+
+### I-22: ConfigurationBundle
+- **Producer / Consumer:** `C-20 (Contracts & Config)` $\to$ All Runtime & Offline Components
+- **Direction:** Configuration Registry $\to$ System Subsystems
+- **Schema ID / Version:** `https://sih26168.invalid/contracts/schemas/configuration_bundle_v1.schema.json` / `1.0.0`
+- **Serialization:** Tier A (JSON Schema Draft 2020-12, `additionalProperties: false`)
+- **Required Fields:** `schema_version`, `config_id`, `sha256`, `environment`, `features`, `thresholds`, `component_versions`
+- **Optional Fields:** None (all safety thresholds and feature flags must be declared; zero hidden defaults)
+- **Units:** Declared explicitly per threshold parameter
+- **Coordinate Frame:** Declared per parameter
+- **Clock Domain:** Free of scientific wall-clock dependencies
+- **Sequence & Ordering:** Immutable configuration snapshot per run
+- **Quality & Validity:** Strict cross-field validation; bounds checking on all filter parameters (e.g. innovation gates, noise floors)
+- **Rejection Behaviour:** Malformed configurations or unknown feature flags abort process start or disable optional modules
+
+---
+
+## 6. Downstream Work Package Execution Roadmap
 
 ```mermaid
 flowchart TD
-    WP01_1["WP-01.1 (Issue #25)<br>Interface Schema Plan<br>(I-01 through I-22)"] --> WP01_2["WP-01.2 (Issue #26)<br>Timestamp, Provenance &<br>Evidence Envelopes"]
-    WP01_1 --> WP01_3["WP-01.3 (Issue #27)<br>Navigation, Health, Alignment<br>& Display Enums"]
-    WP01_2 --> WP01_4["WP-01.4 (Issue #28)<br>Deterministic Code Generation Tooling"]
+    WP01_1["WP-01.1 (Issue #25)<br>Normative Interface-Schema Plan<br>(I-01 through I-22)"] --> WP01_2["WP-01.2 (Issue #26)<br>Executable Base Envelopes,<br>Timestamp & Provenance Schemas"]
+    WP01_1 --> WP01_3["WP-01.3 (Issue #27)<br>Executable Enum Schemas<br>(Nav, Health, Alignment, UI)"]
+    WP01_2 --> WP01_4["WP-01.4 (Issue #28)<br>Deterministic Code Generation<br>(Python, C++, Kotlin)"]
     WP01_3 --> WP01_4
-    WP01_4 --> WP01_5["WP-01.5 (Issue #29)<br>Minimal Kotlin, C++ and<br>Python Bindings"]
-    WP01_5 --> WP01_6["WP-01.6 (Issue #30)<br>Schema Compatibility Tests<br>& Synthetic Fixtures"]
+    WP01_4 --> WP01_5["WP-01.5 (Issue #29)<br>Minimal Target Language Bindings<br>(C++ Headers, Kotlin Classes, Python Types)"]
+    WP01_5 --> WP01_6["WP-01.6 (Issue #30)<br>Automated Compatibility Tests<br>& Synthetic Golden Fixtures"]
 ```
 
-### 4.1 Phase 1: Foundational Envelope & Enums (M1 Milestone)
-1. **`WP-01.2` (Issue #26):**
-   - Implement `contracts/schemas/common/provenance_v1.schema.json`.
-   - Implement `contracts/schemas/common/timestamp_v1.schema.json`.
-   - Implement `contracts/schemas/common/evidence_envelope_v1.schema.json`.
-   - Standardize base types across Tier A, B, and C contracts.
-2. **`WP-01.3` (Issue #27):**
-   - Implement `contracts/enums/navigation_mode_v1.json` (`INITIALIZING`, `GNSS_AIDED`, `DEGRADED`, `BLACKOUT_DR`, `REACQUIRING`, `FAULT`).
-   - Implement `contracts/enums/integrity_state_v1.json` (`HEALTHY`, `DEGRADED`, `FAILED`, `UNAVAILABLE`).
-   - Implement `contracts/enums/alignment_status_v1.json` (`UNALIGNED`, `COARSE`, `FINE`, `UNCERTAIN`, `SLIP_SUSPECTED`).
-   - Implement `contracts/enums/display_mode_v1.json` (`LIVE`, `REPLAY`, `SIMULATED_OUTAGE`, `DEMO`).
-
-### 4.2 Phase 2: Codegen, Bindings & Fixtures (M2 Milestone)
-1. **`WP-01.4` (Issue #28):**
-   - Upgrade `ci/generate_contract_bindings.py` to deterministically parse JSON schemas and enum definitions.
-   - Implement formatting and drift checks (`--check` mode for CI).
-2. **`WP-01.5` (Issue #29):**
-   - Generate Kotlin data classes (`android/app/src/main/java/.../contracts/`).
-   - Generate C++ headers (`core/include/sih/contracts/`).
-   - Generate Python typed dataclasses (`tools/contracts/`).
-3. **`WP-01.6` (Issue #30):**
-   - Create golden JSON fixtures for each interface under `contracts/fixtures/`.
-   - Implement Python schema compatibility and round-trip unit test suite (`tests/contracts/test_schema_compatibility.py`).
+1. **`WP-01.2` (Issue #26):** Implement executable JSON Schemas in `contracts/schemas/common/` for base envelopes, provenance headers, and timestamp domains.
+2. **`WP-01.3` (Issue #27):** Implement executable JSON definitions in `contracts/enums/` for all system states.
+3. **`WP-01.4` (Issue #28):** Upgrade `ci/generate_contract_bindings.py` to deterministically compile schemas into native data models.
+4. **`WP-01.5` (Issue #29):** Produce generated bindings for Kotlin (`android/.../contracts/`), C++ (`core/include/sih/contracts/`), and Python (`tools/contracts/`).
+5. **`WP-01.6` (Issue #30):** Deliver synthetic golden fixtures (`contracts/fixtures/`) and schema round-trip test suites.
 
 ---
 
-## 5. Verification and Policy Compliance
+## 7. Verification and Policy Compliance
 
-The execution of this schema plan strictly conforms to repository policies:
-- **No Forbidden Files:** No binary databases (`.sqlite`, `.db`), map binaries (`.pbf`), or neural model weights (`.onnx`, `.tflite`) are committed into `contracts/`.
-- **Zero Local/Absolute Paths:** All references use canonical, repository-relative paths.
-- **Verification Command:** `python ci/verify_repository.py all` passes without warnings or skipped checks.
+The execution of this schema plan strictly adheres to repository governance:
+- **No Forbidden Files:** No `.pbf`, `.sqlite`, `.onnx`, `.apk`, or private data committed.
+- **Zero Local/Absolute Paths:** All links and file references use repository-relative paths.
+- **Automated Verification:** Validated cleanly via `python ci/verify_repository.py all`.
