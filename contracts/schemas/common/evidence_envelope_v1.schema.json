@@ -4,13 +4,14 @@
   "title": "EvidenceEnvelopeV1",
   "description": "Normative canonical evidence envelope for SIH26168 stream observations and recorded events, encapsulating monotonic timebase, provenance lineage, semantic quality gates, and typed payload.",
   "type": "object",
-  "additionalProperties": false,
+  "additionalProperties": true,
   "required": [
     "schema_version",
     "payload_type",
     "timestamp",
     "provenance",
-    "payload"
+    "payload",
+    "validity_gate"
   ],
   "properties": {
     "schema_version": {
@@ -35,7 +36,7 @@
     },
     "validity_gate": {
       "type": "object",
-      "additionalProperties": false,
+      "additionalProperties": true,
       "required": [
         "is_finite",
         "is_valid"

@@ -13,7 +13,8 @@
     "stream_id": "sensor_accel",
     "device_id": "fixture-device-virtual",
     "build_id": "ci-test-fixture",
-    "provenance_type": "SYNTHETIC",
+    "provenance_type": "DETERMINISTIC_REPLAY",
+    "synthetic": true,
     "contributing_evidence_ids": []
   },
   "payload": {

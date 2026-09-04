@@ -4,7 +4,7 @@
   "title": "ProvenanceV1",
   "description": "Normative provenance tracking contract for SIH26168 defining evidence identity, session/stream context, hardware/build lineage, and upstream evidence consumption.",
   "type": "object",
-  "additionalProperties": false,
+  "additionalProperties": true,
   "required": [
     "evidence_id",
     "session_id",
@@ -29,19 +29,27 @@
     },
     "device_id": {
       "type": "string",
+      "minLength": 1,
       "description": "Hardware device or model identifier."
     },
     "build_id": {
       "type": "string",
+      "minLength": 1,
       "description": "Software build version, release tag, or git commit SHA."
     },
     "provenance_type": {
+      "type": "string",
       "enum": [
+        "LIVE_DEVICE",
+        "DETERMINISTIC_REPLAY",
         "LIVE",
-        "REPLAY",
-        "SYNTHETIC"
+        "REPLAY"
       ],
-      "description": "Operational origin classification of the observation."
+      "description": "Operational origin classification of the observation source."
+    },
+    "synthetic": {
+      "type": "boolean",
+      "description": "Flag indicating whether observation is generated from synthetic simulation."
     },
     "contributing_evidence_ids": {
       "type": "array",
