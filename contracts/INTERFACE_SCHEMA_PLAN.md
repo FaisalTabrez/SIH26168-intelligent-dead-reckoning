@@ -109,7 +109,7 @@ Data validation enforces mathematical and physical boundaries in addition to syn
 
 #### 4.4 Canonical Navigation Modes and GNSS Availability Separation
 - **Canonical Navigation Modes:** S2 navigation core state transitions strictly follow the 6-state model: `INITIALIZING`, `GNSS_AIDED`, `DEGRADED`, `BLACKOUT_DR`, `REACQUIRING`, and `FAULT`. External aids (ML/map) cannot invent or force states.
-- **Separate GNSS Availability Axis:** GNSS signal availability is tracked independently on its own health axis (`HEALTHY`, `DEGRADED`, `UNAVAILABLE`, `CANDIDATE_RETURN`) and does not overwrite or conflate with the navigation filter state. Reacquisition phases belong to a separate state axis.
+- **Separate GNSS Availability Axis:** GNSS signal availability is tracked independently on its own health axis (`HEALTHY`, `DEGRADED`, `UNAVAILABLE`, `CANDIDATE_RETURN`) and does not overwrite or conflate with the navigation filter state. Reacquisition phases belong to a separate state axis (`IDLE`, `SCREENING`, `DWELL`, `ACCEPTED`, `REJECTED`).
 - **Outage Representation:** When GNSS fixes are unavailable, the provider emits `LocationGnssFix` with a `field_mask` clearing unavailable fields (represented as explicit `null` values). The estimator transitions along the navigation mode axis to dead-reckoning (`BLACKOUT_DR`) without synthesizing artificial measurements.
 
 ### 4.5 Dropped and Missing Data Representation
@@ -357,7 +357,7 @@ Data validation enforces mathematical and physical boundaries in addition to syn
 - **Units:** Distance: meters; Normalized Innovation Squared (NIS): dimensionless
 - **Coordinate Frame:** Local tangent NED frame $n$
 - **Clock Domain:** Core scientific epoch
-- **Sequence & Ordering:** Multi-stage phase sequence: `[CANDIDATE, DWELL_VERIFYING, ACCEPTED, REJECTED]`
+- **Sequence & Ordering:** Multi-stage phase sequence: `[IDLE, SCREENING, DWELL, ACCEPTED, REJECTED]`
 - **Quality & Validity:** Zero first-fix privilege; multi-sample dwell verification; finite NIS
 - **Rejection Behaviour:** Biased returning fixes failing dwell or innovation gates are rejected; filter remains in dead-reckoning
 
