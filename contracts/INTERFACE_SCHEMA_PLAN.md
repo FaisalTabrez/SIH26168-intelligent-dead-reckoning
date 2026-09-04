@@ -66,7 +66,7 @@ Before generating code or writing executable schemas, the following versioning a
 
 ### 3.2 Orientation and Active Quaternions
 - **Representation:** Active Hamilton rotation quaternion transforming vectors from body frame $b$ to navigation frame $n$:
-  $$\mathbf{v}^n = \mathbf{q}_n^b \otimes \mathbf{v}^b \otimes (\mathbf{q}_n^b)^*$$
+  $$\mathbf{v}^n = \mathbf{q}^n_b \otimes \mathbf{v}^b \otimes (\mathbf{q}^n_b)^*$$
 - **Element Ordering:** Strictly scalar-first $\mathbf{q} = [w, x, y, z]$, where $w$ is the real scalar component and $[x, y, z]$ is the imaginary vector component.
 - **Canonical Constraint:** Quaternions are unit-normalized ($\|\mathbf{q}\| = 1.0 \pm 10^{-6}$) and canonicalized such that $w \ge 0$. If $w < 0$, the quaternion is negated: $\mathbf{q} \leftarrow -\mathbf{q}$.
 - **S2 Error-State Convention:** 15-state right-multiplicative error-state Kalman filter (ESKF) convention:
@@ -109,7 +109,7 @@ Data validation enforces mathematical and physical boundaries in addition to syn
 
 #### 4.4 Canonical Navigation Modes and GNSS Availability Separation
 - **Canonical Navigation Modes:** S2 navigation core state transitions strictly follow the 6-state model: `INITIALIZING`, `GNSS_AIDED`, `DEGRADED`, `BLACKOUT_DR`, `REACQUIRING`, and `FAULT`. External aids (ML/map) cannot invent or force states.
-- **Separate GNSS Availability Axis:** GNSS signal integrity is tracked independently on its own health axis (`GNSS_HEALTHY`, `GNSS_OUTAGE`, `REACQUISITION_PENDING`, `REACQUIRED`, `DEGRADED`) and does not overwrite or conflate with the navigation filter state.
+- **Separate GNSS Availability Axis:** GNSS signal availability is tracked independently on its own health axis (`HEALTHY`, `DEGRADED`, `UNAVAILABLE`, `CANDIDATE_RETURN`) and does not overwrite or conflate with the navigation filter state. Reacquisition phases belong to a separate state axis.
 - **Outage Representation:** When GNSS fixes are unavailable, the provider emits `LocationGnssFix` with a `field_mask` clearing unavailable fields (represented as explicit `null` values). The estimator transitions along the navigation mode axis to dead-reckoning (`BLACKOUT_DR`) without synthesizing artificial measurements.
 
 ### 4.5 Dropped and Missing Data Representation
