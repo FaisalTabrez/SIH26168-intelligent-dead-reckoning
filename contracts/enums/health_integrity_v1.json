@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sih26168.invalid/contracts/enums/health_integrity_v1.json",
+  "schema_version": 1,
+  "enum_name": "HealthIntegrityStateV1",
+  "description": "Authoritative sensor, subsystem, and GNSS integrity status enums as defined by Architecture Revision 3.",
+  "values": [
+    "HEALTHY",
+    "DEGRADED",
+    "FAILED",
+    "UNAVAILABLE",
+    "OUTAGE",
+    "REACQUISITION_PENDING",
+    "REACQUIRED"
+  ],
+  "definitions": {
+    "HEALTHY": "Subsystem operating within nominal noise, rate, and latency bounds.",
+    "DEGRADED": "Non-critical performance reduction such as thermal rise, dropped samples, or elevated PDOP.",
+    "FAILED": "Hardware sensor failure, timeout, or mathematical PSD defect.",
+    "UNAVAILABLE": "Subsystem or sensor physically absent or denied by system permissions.",
+    "OUTAGE": "External satellite or signal reception loss requiring inertial bridging.",
+    "REACQUISITION_PENDING": "Initial fix candidate detected during outage; undergoing consistency checks.",
+    "REACQUIRED": "Signal recovery confirmed following dwell window validation."
+  }
+}

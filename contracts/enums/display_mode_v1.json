@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sih26168.invalid/contracts/enums/display_mode_v1.json",
+  "schema_version": 1,
+  "enum_name": "DisplayModeV1",
+  "description": "Authoritative UI display mode enums for Component C-11 and Interface I-16 as defined by Architecture Revision 3.",
+  "values": [
+    "LIVE_ACTIVE",
+    "LIVE_DEGRADED",
+    "LIVE_BLACKOUT",
+    "REPLAY_ACTIVE",
+    "REPLAY_PAUSED",
+    "STALE",
+    "FAULT"
+  ],
+  "definitions": {
+    "LIVE_ACTIVE": "Real-time navigation actively publishing with nominal confidence.",
+    "LIVE_DEGRADED": "Real-time navigation active under degraded integrity with uncertainty indicators displayed.",
+    "LIVE_BLACKOUT": "Real-time GNSS blackout navigation; dead-reckoning tunnel display active.",
+    "REPLAY_ACTIVE": "Historical session replay playing with prominent REPLAY badge.",
+    "REPLAY_PAUSED": "Historical session replay paused at fixed epoch.",
+    "STALE": "Output frozen or paused; last known position held with explicit STALE marker.",
+    "FAULT": "Unrecoverable core or sensor failure; navigation UI displays failure state."
+  }
+}
