@@ -16,7 +16,9 @@ class EnumsContractTest(unittest.TestCase):
         self.assertNotIn("note", data, "Scaffold note must be removed")
         expected_states = ["INITIALIZING", "GNSS_AIDED", "DEGRADED", "BLACKOUT_DR", "REACQUIRING", "FAULT"]
         self.assertEqual(data.get("navigation_states"), expected_states)
-        self.assertIn("SYNTHETIC", data.get("provenance", []))
+        expected_provenance = ["LIVE_DEVICE", "DETERMINISTIC_REPLAY"]
+        self.assertEqual(data.get("provenance"), expected_provenance)
+        self.assertNotIn("SYNTHETIC", data.get("provenance", []))
 
     def test_navigation_mode_v1(self):
         file_path = self.enums_dir / "navigation_mode_v1.json"
@@ -34,7 +36,7 @@ class EnumsContractTest(unittest.TestCase):
         self.assertTrue(file_path.is_file())
         data = json.loads(file_path.read_text(encoding="utf-8"))
         self.assertEqual(data.get("enum_name"), "HealthIntegrityStateV1")
-        expected = ["HEALTHY", "DEGRADED", "FAILED", "UNAVAILABLE", "OUTAGE", "REACQUISITION_PENDING", "REACQUIRED"]
+        expected = ["HEALTHY", "DEGRADED", "UNAVAILABLE", "CANDIDATE_RETURN"]
         self.assertEqual(data.get("values"), expected)
 
     def test_alignment_status_v1(self):
@@ -42,7 +44,7 @@ class EnumsContractTest(unittest.TestCase):
         self.assertTrue(file_path.is_file())
         data = json.loads(file_path.read_text(encoding="utf-8"))
         self.assertEqual(data.get("enum_name"), "AlignmentStatusV1")
-        expected = ["UNALIGNED", "COARSE_ALIGNING", "FINE_ALIGNING", "ALIGNED", "MOUNT_SLIP_DETECTED", "REALIGNING"]
+        expected = ["UNINITIALIZED", "VALID", "UNCERTAIN", "SLIP_SUSPECTED"]
         self.assertEqual(data.get("values"), expected)
 
     def test_display_mode_v1(self):
@@ -50,8 +52,20 @@ class EnumsContractTest(unittest.TestCase):
         self.assertTrue(file_path.is_file())
         data = json.loads(file_path.read_text(encoding="utf-8"))
         self.assertEqual(data.get("enum_name"), "DisplayModeV1")
-        expected = ["LIVE_ACTIVE", "LIVE_DEGRADED", "LIVE_BLACKOUT", "REPLAY_ACTIVE", "REPLAY_PAUSED", "STALE", "FAULT"]
+        expected = ["LIVE_DEVICE", "DETERMINISTIC_REPLAY"]
         self.assertEqual(data.get("values"), expected)
+
+    def test_axes_separation(self):
+        # Verify navigation mode, GNSS availability, alignment, and display source remain distinct axes
+        nav_mode = set(json.loads((self.enums_dir / "navigation_mode_v1.json").read_text(encoding="utf-8"))["values"])
+        gnss_avail = set(json.loads((self.enums_dir / "health_integrity_v1.json").read_text(encoding="utf-8"))["values"])
+        align = set(json.loads((self.enums_dir / "alignment_status_v1.json").read_text(encoding="utf-8"))["values"])
+        display = set(json.loads((self.enums_dir / "display_mode_v1.json").read_text(encoding="utf-8"))["values"])
+
+        self.assertEqual(nav_mode, {"INITIALIZING", "GNSS_AIDED", "DEGRADED", "BLACKOUT_DR", "REACQUIRING", "FAULT"})
+        self.assertEqual(gnss_avail, {"HEALTHY", "DEGRADED", "UNAVAILABLE", "CANDIDATE_RETURN"})
+        self.assertEqual(align, {"UNINITIALIZED", "VALID", "UNCERTAIN", "SLIP_SUSPECTED"})
+        self.assertEqual(display, {"LIVE_DEVICE", "DETERMINISTIC_REPLAY"})
 
     def test_enum_invariants(self):
         for json_file in self.enums_dir.glob("*.json"):

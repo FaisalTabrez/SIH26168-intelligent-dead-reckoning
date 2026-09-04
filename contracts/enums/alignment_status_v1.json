@@ -3,21 +3,17 @@
   "$id": "https://sih26168.invalid/contracts/enums/alignment_status_v1.json",
   "schema_version": 1,
   "enum_name": "AlignmentStatusV1",
-  "description": "Authoritative phone-to-vehicle mounting alignment status enums as defined by Architecture Revision 3 Component C-05.",
+  "description": "Authoritative phone-to-vehicle mounting alignment status enum as defined by Architecture Revision 3 Component C-05.",
   "values": [
-    "UNALIGNED",
-    "COARSE_ALIGNING",
-    "FINE_ALIGNING",
-    "ALIGNED",
-    "MOUNT_SLIP_DETECTED",
-    "REALIGNING"
+    "UNINITIALIZED",
+    "VALID",
+    "UNCERTAIN",
+    "SLIP_SUSPECTED"
   ],
   "definitions": {
-    "UNALIGNED": "Initial unknown mounting orientation relative to vehicle chassis.",
-    "COARSE_ALIGNING": "Initial gravity vector and coarse forward heading estimation in progress.",
-    "FINE_ALIGNING": "Dynamic acceleration and turn angular velocity coupling refinement.",
-    "ALIGNED": "Stable alignment achieved; phone-to-vehicle rotation matrix valid.",
-    "MOUNT_SLIP_DETECTED": "Sudden rotation rate or acceleration discontinuity detected relative to vehicle motion.",
-    "REALIGNING": "Alignment reset and re-estimation initiated following slip event."
+    "UNINITIALIZED": "Initial unknown mounting orientation relative to vehicle chassis prior to alignment convergence.",
+    "VALID": "Stable alignment achieved; phone-to-vehicle rotation matrix is valid and calibrated.",
+    "UNCERTAIN": "Alignment covariance exceeds confidence threshold or dynamic excitation is insufficient.",
+    "SLIP_SUSPECTED": "Mount kinematic anomaly or sudden displacement detected; realignment required."
   }
 }

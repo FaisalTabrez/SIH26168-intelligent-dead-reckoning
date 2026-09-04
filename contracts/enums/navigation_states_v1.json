@@ -9,9 +9,8 @@
     "FAULT"
   ],
   "provenance": [
-    "LIVE",
-    "REPLAY",
-    "SYNTHETIC"
+    "LIVE_DEVICE",
+    "DETERMINISTIC_REPLAY"
   ],
   "description": "Authoritative S2 navigation core state transitions and observation provenance classifications as defined by Architecture Revision 3."
 }
