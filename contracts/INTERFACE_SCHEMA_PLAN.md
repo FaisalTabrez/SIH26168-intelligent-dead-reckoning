@@ -60,7 +60,7 @@ Before generating code or writing executable schemas, the following versioning a
 ### 3.1 Coordinate Frames
 - **`WGS84 Geodetic`:** Earth-fixed reference frame. Latitude ($\phi$) and Longitude ($\lambda$) in decimal degrees ($[-90.0, 90.0]^\circ$ and $[-180.0, 180.0]^\circ$). Ellipsoidal height ($h$) in meters above the WGS84 reference ellipsoid.
 - **`Local NED (n)`:** North-East-Down Cartesian tangent frame. Origin is fixed at the session anchor point ($\phi_0, \lambda_0, h_0$) with an immutable `origin_id`. $+x$ points True North, $+y$ points True East, and $+z$ points Downward along the local gravity vector.
-- **`IMU Body (b)`:** Physical triaxial sensor frame rigidly attached to the phone IMU. For S2 core processing, $+x$ is forward, $+y$ is right, and $+z$ is down.
+- **`IMU Body (b)`:** Physical triaxial sensor-package frame rigidly attached to the phone hardware. Its axes correspond directly to the physical IMU package; no assumption is made that $+x$ is vehicle-forward. Phone-to-vehicle mounting alignment is dynamic and explicitly estimated by Component `C-05` (Stage S3).
 - **`Android Sensor Frame`:** Raw sensor coordinates from Android `SensorEvent` ($+x$ right, $+y$ up, $+z$ out of screen). Converted deterministically to IMU body frame $b$ by component `C-03` prior to batching.
 - **`Vehicle Body (v)`:** Structural reference frame of the moving vehicle ($+x$ forward along longitudinal driving axis, $+y$ right along transversal axle, $+z$ down orthogonal to chassis floor).
 
@@ -70,11 +70,11 @@ Before generating code or writing executable schemas, the following versioning a
 - **Element Ordering:** Strictly scalar-first $\mathbf{q} = [w, x, y, z]$, where $w$ is the real scalar component and $[x, y, z]$ is the imaginary vector component.
 - **Canonical Constraint:** Quaternions are unit-normalized ($\|\mathbf{q}\| = 1.0 \pm 10^{-6}$) and canonicalized such that $w \ge 0$. If $w < 0$, the quaternion is negated: $\mathbf{q} \leftarrow -\mathbf{q}$.
 - **S2 Error-State Convention:** 15-state right-multiplicative error-state Kalman filter (ESKF) convention:
-  $$\delta \mathbf{x} = [\delta \boldsymbol{\theta}^T, \, \delta \mathbf{v}^T, \, \delta \mathbf{p}^T, \, \delta \mathbf{b}_a^T, \, \delta \mathbf{b}_g^T]^T \in \mathbb{R}^{15}$$
-  where $\delta \boldsymbol{\theta}$ represents small orientation error angles in radians.
+  $$\delta \mathbf{x} = [\delta \mathbf{p}^{n\,T}, \, \delta \mathbf{v}^{n\,T}, \, \delta \boldsymbol{\theta}^{b\,T}, \, \delta \mathbf{b}_a^{b\,T}, \, \delta \mathbf{b}_g^{b\,T}]^T \in \mathbb{R}^{15}$$
+  where position error $\delta \mathbf{p}^n$ and velocity error $\delta \mathbf{v}^n$ are expressed in navigation frame $n$, while attitude error $\delta \boldsymbol{\theta}^b$, accelerometer bias error $\delta \mathbf{b}_a^b$, and gyroscope bias error $\delta \mathbf{b}_g^b$ are expressed in IMU body frame $b$.
 
 ### 3.3 Timebase and Monotonic Clocks
-- **Canonical Scientific Epoch (`epoch_ns`):** Signed 64-bit integer nanoseconds (`int64`, non-decreasing per session). Never depends on device wall clock or UTC.
+- **Canonical Scientific Epoch (`epoch_ns`):** Signed 64-bit integer nanoseconds (`int64`, non-decreasing per session), derived by Component `C-03` (Timebase Adapter) from the boot-scoped Android monotonic clock (`android.os.SystemClock.elapsedRealtimeNanos()`). Never depends on device wall clock or UTC.
 - **Hardware Arrival Clock (`arrival_elapsed_realtime_ns`):** Signed 64-bit integer nanoseconds from `android.os.SystemClock.elapsedRealtimeNanos()`. Monotonic per boot cycle, immune to network time adjustments or NTP steps.
 - **Clock Domain Identifiers:** Every stream explicitly records its `clock_id` to prevent cross-domain contamination.
 
@@ -107,9 +107,10 @@ Data validation enforces mathematical and physical boundaries in addition to syn
   $$\sigma_p^2 \ge 10^{-4}\,\text{m}^2, \quad \sigma_v^2 \ge 10^{-4}\,(\text{m/s})^2, \quad \sigma_\theta^2 \ge 10^{-6}\,\text{rad}^2$$
 - **Defect Handling:** If a numerical defect or non-finite covariance occurs, an explicit `PSD_DEFECT` fault is emitted. Silently clipping matrices or resetting to identity without logging is strictly prohibited.
 
-### 4.4 Explicit Representation of GNSS Outages and Unavailability
-- GNSS state is communicated via explicit enums: `GNSS_HEALTHY`, `GNSS_OUTAGE`, `REACQUISITION_PENDING`, `REACQUIRED`, `DEGRADED`.
-- When GNSS fixes are unavailable, the provider emits `LocationGnssFix` with a `field_mask` clearing position/velocity or sets an explicit `null` payload. The estimator transitions to dead-reckoning (`BLACKOUT_DR`) without synthesizing artificial measurements.
+#### 4.4 Canonical Navigation Modes and GNSS Availability Separation
+- **Canonical Navigation Modes:** S2 navigation core state transitions strictly follow the 6-state model: `INITIALIZING`, `GNSS_AIDED`, `DEGRADED`, `BLACKOUT_DR`, `REACQUIRING`, and `FAULT`. External aids (ML/map) cannot invent or force states.
+- **Separate GNSS Availability Axis:** GNSS signal integrity is tracked independently on its own health axis (`GNSS_HEALTHY`, `GNSS_OUTAGE`, `REACQUISITION_PENDING`, `REACQUIRED`, `DEGRADED`) and does not overwrite or conflate with the navigation filter state.
+- **Outage Representation:** When GNSS fixes are unavailable, the provider emits `LocationGnssFix` with a `field_mask` clearing unavailable fields (represented as explicit `null` values). The estimator transitions along the navigation mode axis to dead-reckoning (`BLACKOUT_DR`) without synthesizing artificial measurements.
 
 ### 4.5 Dropped and Missing Data Representation
 - Gaps and packet loss are represented explicitly via `gap_flags` in `ImuBatch` and loss counters in `SensorQualityStatus`. Missing sensor pairs are never interpolated or synthetically hallucinated for S2 propagation.
@@ -118,16 +119,20 @@ Data validation enforces mathematical and physical boundaries in addition to syn
 
 ## 5. Normative Interface Specifications (I-01 through I-22)
 
+> [!IMPORTANT]
+> **Required Keys versus Conditionally Nullable Fields:**
+> In all interface specifications below, fields designated as **Required Fields** denote mandatory object keys that must always be present in the serialized payload or struct. Fields listed as **Conditionally Nullable** represent measurements that may assume a `null` value (or struct NaN/cleared bit) only when their presence bit in `field_mask` or their corresponding availability status flag explicitly marks them unavailable. Omission of required keys from JSON payloads is strictly prohibited.
+
 ### I-01: RawSensorSample
 - **Producer / Consumer:** `C-01 (Android Acquisition)` / `C-12 (Replay)` $\to$ `C-02 (Writer)` / `C-03 (Timebase Adapter)`
 - **Direction:** Android Sensor HAL / Event callback $\to$ Navigation Worker
 - **Schema ID / Version:** `https://sih26168.invalid/contracts/schemas/raw_sensor_sample_v1.schema.json` / `1.0.0`
 - **Serialization:** Tier B (JSON Schema + append-only JSONL chunk)
-- **Required Fields:** `schema_version`, `evidence_id`, `session_id`, `stream_id`, `sequence`, `source_timestamp_ns`, `arrival_elapsed_realtime_ns`, `sensor_type`, `values`, `accuracy`, `source_metadata`
-- **Optional Fields:** None (all channels present or explicitly null by sensor type)
+- **Required Keys:** `schema_version`, `evidence_id`, `session_id`, `stream_id`, `sequence`, `source_timestamp_ns`, `arrival_elapsed_realtime_ns`, `sensor_type`, `values`, `accuracy`, `source_metadata`
+- **Conditionally Nullable Fields:** None (all channels present or explicitly null by sensor type)
 - **Units:** Accel: $\text{m/s}^2$; Gyro: $\text{rad/s}$; Mag: $\mu\text{T}$; Temp: $^\circ\text{C}$
 - **Coordinate Frame:** Android raw sensor body axes
-- **Clock Domain:** Hardware arrival `android.elapsed_realtime_ns`
+- **Clock Domain:** Hardware arrival `android.os.SystemClock.elapsedRealtimeNanos()`
 - **Sequence & Ordering:** Monotonically increasing sequence integer per `stream_id`; gaps recorded explicitly
 - **Quality & Validity:** Hardware accuracy level ($0 = \text{Unreliable}, 3 = \text{High}$); finite values check
 - **Rejection Behaviour:** Malformed, non-finite, or backwards-timestamped samples are logged to error stream and excluded from core batching
@@ -139,11 +144,11 @@ Data validation enforces mathematical and physical boundaries in addition to syn
 - **Direction:** Android LocationManager callback $\to$ Ingestion Pipeline
 - **Schema ID / Version:** `https://sih26168.invalid/contracts/schemas/location_gnss_fix_v1.schema.json` / `1.0.0`
 - **Serialization:** Tier B (JSON Schema + JSONL chunk)
-- **Required Fields:** `schema_version`, `evidence_id`, `provider`, `source_timestamp_ns`, `arrival_elapsed_realtime_ns`, `lat_deg`, `lon_deg`, `alt_m`, `hacc_m`, `vacc_m`, `speed_mps`, `speed_acc_mps`, `bearing_deg`, `bearing_acc_deg`, `is_mock`, `field_mask`
-- **Optional Fields:** `alt_m`, `vacc_m`, `speed_mps`, `speed_acc_mps`, `bearing_deg`, `bearing_acc_deg` (governed by bitmask in `field_mask`)
+- **Required Keys:** `schema_version`, `evidence_id`, `provider`, `source_timestamp_ns`, `arrival_elapsed_realtime_ns`, `lat_deg`, `lon_deg`, `alt_m`, `hacc_m`, `vacc_m`, `speed_mps`, `speed_acc_mps`, `bearing_deg`, `bearing_acc_deg`, `is_mock`, `field_mask`
+- **Conditionally Nullable Fields:** `alt_m`, `vacc_m`, `speed_mps`, `speed_acc_mps`, `bearing_deg`, `bearing_acc_deg` (keys must be present; values may be `null` only when marked absent by `field_mask`)
 - **Units:** Coordinates: degrees; Altitude / Accuracy: meters; Speed: $\text{m/s}$; Bearing: degrees
 - **Coordinate Frame:** WGS84 Geodetic reference ellipsoid
-- **Clock Domain:** `android.elapsed_realtime_ns`
+- **Clock Domain:** `android.os.SystemClock.elapsedRealtimeNanos()`
 - **Sequence & Ordering:** Monotonic sequence per provider stream; evidence consumed once
 - **Quality & Validity:** Accuracy floors ($hacc \ge 0.1\,\text{m}$); mock fix flag preserved; range check: $\phi \in [-90, 90]$, $\lambda \in [-180, 180]$
 - **Rejection Behaviour:** Fixes failing covariance or age checks are tagged with rejection reason; simulated outage hides fix from estimator but preserves it in recording
@@ -171,11 +176,11 @@ Data validation enforces mathematical and physical boundaries in addition to syn
 - **Direction:** Ingestion Pipeline $\to$ System Health Monitors
 - **Schema ID / Version:** `https://sih26168.invalid/contracts/schemas/sensor_quality_status_v1.schema.json` / `1.0.0`
 - **Serialization:** Tier B (JSON Schema + JSONL)
-- **Required Fields:** `sequence`, `epoch_ns`, `stream_states`, `gap_stats`, `batch_stats`, `thermal`, `battery`, `storage`, `lifecycle`
-- **Optional Fields:** `thermal`, `battery` (nullable if device HAL denies access)
+- **Required Keys:** `sequence`, `epoch_ns`, `stream_states`, `gap_stats`, `batch_stats`, `thermal`, `battery`, `storage`, `lifecycle`
+- **Conditionally Nullable Fields:** `thermal`, `battery` (keys must be present; values may be `null` if device HAL denies access)
 - **Units:** Rate: $\text{Hz}$; Dropped samples: count; Battery: percent; Storage: bytes
 - **Coordinate Frame:** N/A
-- **Clock Domain:** `android.elapsed_realtime_ns`
+- **Clock Domain:** `android.os.SystemClock.elapsedRealtimeNanos()`, with canonical `epoch_ns` derived by Component `C-03`
 - **Sequence & Ordering:** Monotonic status sequence
 - **Quality & Validity:** Explicit status enums: `HEALTHY`, `DEGRADED`, `FAILED`, `UNAVAILABLE`
 - **Rejection Behaviour:** Unrecognized states default to `FAILED` to ensure fail-closed operation
@@ -238,7 +243,7 @@ Data validation enforces mathematical and physical boundaries in addition to syn
 - **Required Fields:** `state_sequence`, `ordering_id`, `covariance_15x15`, `quality_flags`
 - **Optional Fields:** None
 - **Units:** Mixed squared SI units matching S2 error states
-- **Coordinate Frame:** S2 error states $(\delta \boldsymbol{\theta}, \delta \mathbf{v}, \delta \mathbf{p}, \delta \mathbf{b}_a, \delta \mathbf{b}_g)$
+- **Coordinate Frame:** S2 error states $(\delta \mathbf{p}^n, \delta \mathbf{v}^n, \delta \boldsymbol{\theta}^b, \delta \mathbf{b}_a^b, \delta \mathbf{b}_g^b)$
 - **Clock Domain:** Identical epoch to corresponding `NavigationState`
 - **Sequence & Ordering:** Exactly one uncertainty payload per `NavigationState` sequence ID
 - **Quality & Validity:** Symmetric positive semi-definite; variance floors enforced
