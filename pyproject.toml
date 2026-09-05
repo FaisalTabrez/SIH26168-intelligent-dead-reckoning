@@ -8,8 +8,8 @@ version = "0.1.0"
 requires-python = ">=3.11"
 description = "Repository-verification scaffold; not a navigation implementation"
 dependencies = [
-    "jsonschema>=4.20.0",
-    "referencing>=0.30.0",
+    "jsonschema==4.23.0",
+    "referencing==0.35.1",
 ]
 
 [tool.setuptools]

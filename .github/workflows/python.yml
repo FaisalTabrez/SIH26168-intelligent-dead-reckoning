@@ -16,6 +16,6 @@ jobs:
         with:
           python-version: '3.12'
       - name: Install dependencies
-        run: pip install jsonschema>=4.20.0 referencing>=0.30.0
+        run: pip install "jsonschema==4.23.0" "referencing==0.35.1"
       - name: Verify
         run: python -m unittest discover -s tools/bootstrap/tests
