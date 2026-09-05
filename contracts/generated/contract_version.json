@@ -2,6 +2,18 @@
   "contract_version": "1.0.0-bootstrap",
   "generated_from": [
     "contracts/VERSION",
-    "contracts/enums/navigation_states_v1.json"
+    "contracts/enums/alignment_status_v1.json",
+    "contracts/enums/display_mode_v1.json",
+    "contracts/enums/health_integrity_v1.json",
+    "contracts/enums/map_status_v1.json",
+    "contracts/enums/model_status_v1.json",
+    "contracts/enums/navigation_mode_v1.json",
+    "contracts/enums/navigation_states_v1.json",
+    "contracts/enums/reacquisition_status_v1.json",
+    "contracts/enums/recording_status_v1.json",
+    "contracts/enums/sensor_status_v1.json",
+    "contracts/schemas/common/evidence_envelope_v1.schema.json",
+    "contracts/schemas/common/provenance_v1.schema.json",
+    "contracts/schemas/common/timestamp_v1.schema.json"
   ]
 }
