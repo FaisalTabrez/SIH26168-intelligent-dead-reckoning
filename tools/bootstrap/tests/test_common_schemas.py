@@ -59,10 +59,7 @@ class CommonSchemasContractTest(unittest.TestCase):
         self.assertTrue(fixture["validity_gate"]["is_finite"])
         self.assertTrue(fixture["validity_gate"]["is_valid"])
 
-        try:
-            import jsonschema
-        except ImportError:
-            self.skipTest("jsonschema not installed; skipping Draft 2020-12 fixture validation")
+        import jsonschema
 
         envelope_schema = json.loads((self.schemas_dir / "evidence_envelope_v1.schema.json").read_text(encoding="utf-8"))
         timestamp_schema = json.loads((self.schemas_dir / "timestamp_v1.schema.json").read_text(encoding="utf-8"))
