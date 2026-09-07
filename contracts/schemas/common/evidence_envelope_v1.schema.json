@@ -44,20 +44,26 @@
       "properties": {
         "is_finite": {
           "type": "boolean",
-          "description": "True if all numerical elements in payload satisfy IEEE 754 isfinite() checks."
+          "description": "True if all numerical elements in payload satisfy IEEE 754 isfinite() checks.",
+          "default": true
         },
         "is_valid": {
           "type": "boolean",
-          "description": "True if payload satisfies physical range envelope and quality constraints."
+          "description": "True if payload satisfies physical range envelope and quality constraints.",
+          "default": true
         },
         "rejection_code": {
-          "type": "string",
+          "type": [
+            "string",
+            "null"
+          ],
           "description": "Diagnostic error or rejection code if sample is gated out of core estimation."
         },
         "flags": {
           "type": "integer",
           "minimum": 0,
-          "description": "Status or failure bitmask flags."
+          "description": "Status or failure bitmask flags.",
+          "default": 0
         }
       }
     }

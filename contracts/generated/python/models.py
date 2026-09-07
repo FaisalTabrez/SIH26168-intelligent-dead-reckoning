@@ -33,8 +33,8 @@ class TimestampV1:
         return cls(
             epoch_ns=int(data["epoch_ns"]),
             arrival_elapsed_realtime_ns=int(data["arrival_elapsed_realtime_ns"]),
-            clock_id=str(data["clock_id"]),
             source_timestamp_ns=data.get("source_timestamp_ns"),
+            clock_id=str(data["clock_id"]),
         )
 
 
@@ -43,10 +43,10 @@ class ProvenanceV1:
     evidence_id: str
     session_id: str
     stream_id: str
-    provenance_type: ProvenanceTypeV1 = ProvenanceTypeV1.LIVE_DEVICE
-    synthetic: bool = False
     device_id: Optional[str] = None
     build_id: Optional[str] = None
+    provenance_type: ProvenanceTypeV1 = ProvenanceTypeV1.LIVE_DEVICE
+    synthetic: bool = False
     contributing_evidence_ids: List[str] = field(default_factory=list)
 
     def to_dict(self) -> Dict[str, Any]:
@@ -70,10 +70,10 @@ class ProvenanceV1:
             evidence_id=str(data["evidence_id"]),
             session_id=str(data["session_id"]),
             stream_id=str(data["stream_id"]),
-            provenance_type=ProvenanceTypeV1(data["provenance_type"]),
-            synthetic=bool(data.get("synthetic", False)),
             device_id=data.get("device_id"),
             build_id=data.get("build_id"),
+            provenance_type=ProvenanceTypeV1(data.get("provenance_type", "LIVE_DEVICE")),
+            synthetic=bool(data.get("synthetic", False)),
             contributing_evidence_ids=list(data.get("contributing_evidence_ids", [])),
         )
 
@@ -82,8 +82,8 @@ class ProvenanceV1:
 class ValidityGateV1:
     is_finite: bool = True
     is_valid: bool = True
-    flags: int = 0
     rejection_code: Optional[str] = None
+    flags: int = 0
 
     def to_dict(self) -> Dict[str, Any]:
         res: Dict[str, Any] = {
@@ -100,8 +100,8 @@ class ValidityGateV1:
         return cls(
             is_finite=bool(data.get("is_finite", True)),
             is_valid=bool(data.get("is_valid", True)),
-            flags=int(data.get("flags", 0)),
             rejection_code=data.get("rejection_code"),
+            flags=int(data.get("flags", 0)),
         )
 
 
@@ -115,7 +115,7 @@ class EvidenceEnvelopeV1:
     schema_version: int = 1
 
     def to_dict(self) -> Dict[str, Any]:
-        return {
+        res: Dict[str, Any] = {
             "schema_version": self.schema_version,
             "payload_type": self.payload_type,
             "timestamp": self.timestamp.to_dict(),
@@ -123,6 +123,7 @@ class EvidenceEnvelopeV1:
             "payload": self.payload,
             "validity_gate": self.validity_gate.to_dict(),
         }
+        return res
 
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> EvidenceEnvelopeV1:

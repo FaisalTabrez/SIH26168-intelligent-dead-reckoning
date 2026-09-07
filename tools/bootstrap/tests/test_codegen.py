@@ -1,3 +1,4 @@
+import copy
 import importlib.util
 import json
 import subprocess
@@ -43,7 +44,12 @@ class CodegenContractTest(unittest.TestCase):
         manifest_path = self.generated_dir / "contract_version.json"
         self.assertTrue(manifest_path.is_file(), "contract_version.json must exist")
         data = json.loads(manifest_path.read_text(encoding="utf-8"))
-        self.assertEqual(data.get("contract_version"), "1.0.0-bootstrap")
+        # Read the expected version from contracts/VERSION rather than
+        # hard-coding it, so this assertion doesn't silently stop verifying
+        # anything the moment the repo bumps contracts/VERSION.
+        version_file = self.root / "contracts/VERSION"
+        expected_version = version_file.read_text(encoding="utf-8").strip()
+        self.assertEqual(data.get("contract_version"), expected_version)
         inputs = data.get("generated_from", [])
         self.assertIn("contracts/VERSION", inputs)
         self.assertIn("contracts/enums/navigation_mode_v1.json", inputs)
@@ -127,6 +133,63 @@ class CodegenContractTest(unittest.TestCase):
         )
         env_dict = env.to_dict()
         self.assertEqual(models_mod.EvidenceEnvelopeV1.from_dict(env_dict), env)
+
+
+    def _load_codegen_module(self):
+        spec = importlib.util.spec_from_file_location("ci_generate_contract_bindings", self.ci_script)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        return module
+
+    def test_schema_field_change_affects_generated_output(self):
+        """Model generation must be driven by the parsed schemas, not by a
+        hard-coded field list. Adding a field to a canonical common schema
+        must show up in the generated C++, Python, and Kotlin models."""
+        codegen = self._load_codegen_module()
+        base_schemas = codegen.load_schemas()
+
+        changed_schemas = copy.deepcopy(base_schemas)
+        provenance_schema = changed_schemas["provenance_v1.schema.json"]
+        provenance_schema["properties"]["mount_hint"] = {
+            "type": "string",
+            "minLength": 1,
+        }
+        provenance_schema["required"].append("mount_hint")
+
+        base_cpp = codegen.generate_cpp_models(base_schemas)
+        changed_cpp = codegen.generate_cpp_models(changed_schemas)
+        self.assertNotEqual(base_cpp, changed_cpp, "Changing a schema field must change generated C++ output")
+        self.assertIn("mount_hint", changed_cpp)
+        self.assertNotIn("mount_hint", base_cpp)
+
+        base_py = codegen.generate_python_models(base_schemas)
+        changed_py = codegen.generate_python_models(changed_schemas)
+        self.assertNotEqual(base_py, changed_py, "Changing a schema field must change generated Python output")
+        self.assertIn("mount_hint", changed_py)
+
+        base_kt = codegen.generate_kotlin_models(base_schemas)
+        changed_kt = codegen.generate_kotlin_models(changed_schemas)
+        self.assertNotEqual(base_kt, changed_kt, "Changing a schema field must change generated Kotlin output")
+        self.assertIn("mountHint", changed_kt)
+
+    def test_check_mode_detects_byte_level_drift(self):
+        """--check must compare raw bytes, not text-normalized content, so
+        e.g. CRLF line endings introduced by an editor are caught as drift
+        the same way the idempotency test would catch them."""
+        target = self.generated_dir / "cpp" / "enums.hpp"
+        original_bytes = target.read_bytes()
+        try:
+            target.write_bytes(original_bytes.replace(b"\n", b"\r\n"))
+            result = subprocess.run(
+                [sys.executable, str(self.ci_script), "--check"],
+                cwd=self.root,
+                capture_output=True,
+                text=True,
+            )
+            self.assertNotEqual(result.returncode, 0, "CRLF drift must be reported as drift, not silently accepted")
+            self.assertIn("drift", result.stderr.lower())
+        finally:
+            target.write_bytes(original_bytes)
 
 if __name__ == "__main__":
     unittest.main()

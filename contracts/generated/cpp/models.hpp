@@ -14,9 +14,9 @@
 namespace sih26168::contracts {
 
 struct TimestampV1 {
-    uint64_t epoch_ns{0};
-    uint64_t arrival_elapsed_realtime_ns{0};
-    std::optional<uint64_t> source_timestamp_ns{std::nullopt};
+    int64_t epoch_ns{0};
+    int64_t arrival_elapsed_realtime_ns{0};
+    std::optional<int64_t> source_timestamp_ns{std::nullopt};
     std::string clock_id{};
 };
 
@@ -34,15 +34,17 @@ struct ProvenanceV1 {
 struct ValidityGateV1 {
     bool is_finite{true};
     bool is_valid{true};
-    uint32_t flags{0};
     std::optional<std::string> rejection_code{std::nullopt};
+    uint32_t flags{0};
 };
 
+template <typename PayloadT>
 struct EvidenceEnvelopeV1 {
     uint32_t schema_version{1};
     std::string payload_type{};
     TimestampV1 timestamp{};
     ProvenanceV1 provenance{};
+    PayloadT payload{};
     ValidityGateV1 validity_gate{};
 };
 

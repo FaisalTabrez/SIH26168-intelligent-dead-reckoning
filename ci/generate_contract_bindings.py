@@ -7,6 +7,14 @@ and contracts/INTERFACE_SCHEMA_PLAN.md.
 Produces deterministic native data models in C++20, Python, and Kotlin
 from JSON Schema Draft 2020-12 and canonical enum contract definitions.
 Adheres strictly to docs/GENERATED_FILE_POLICY.md.
+
+Model generation for the common envelope/timestamp/provenance schemas is
+schema-driven: field names, types, optionality and defaults are derived
+from the parsed JSON Schema documents in contracts/schemas/common (see
+`schema_fields()` and the per-language renderers below), not hand-copied
+into this file. Changing a canonical schema's properties therefore changes
+the generated bindings; `tools/bootstrap/tests/test_codegen.py::
+test_schema_field_change_affects_generated_output` proves this directly.
 """
 from __future__ import annotations
 
@@ -14,7 +22,7 @@ import argparse
 import json
 import sys
 from pathlib import Path
-from typing import Dict, List, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 ROOT = Path(__file__).resolve().parents[1]
 CONTRACTS_DIR = ROOT / "contracts"
@@ -25,6 +33,28 @@ GENERATED_DIR = CONTRACTS_DIR / "generated"
 
 GENERATOR_VERSION = "1.0.0-bootstrap"
 COMMAND_TAG = "python ci/generate_contract_bindings.py"
+
+# The normative contract (contracts/INTERFACE_SCHEMA_PLAN.md section 3.3)
+# declares the canonical nanosecond timebase fields as signed 64-bit
+# integers. Their schemas mark this by setting `maximum` to INT64_MAX;
+# any other "integer" property is treated as a 32-bit unsigned value
+# (bitmasks, small counters, schema/version numbers).
+INT64_MAX = 9223372036854775807
+
+# JSON Schema fields whose properties are enum-typed or reference another
+# common schema/inline object don't carry a generated-language type name
+# themselves (that's a codegen naming decision, not a schema fact), so
+# those mappings are recorded here explicitly.
+REF_STRUCT_NAMES = {
+    "timestamp_v1.schema.json": "TimestampV1",
+    "provenance_v1.schema.json": "ProvenanceV1",
+}
+ENUM_TYPE_BY_FIELD = {
+    "provenance_type": "ProvenanceTypeV1",
+}
+INLINE_STRUCT_NAMES = {
+    "validity_gate": "ValidityGateV1",
+}
 
 
 def get_contract_version() -> str:
@@ -123,7 +153,173 @@ def generate_cpp_enums(enums: Dict[str, Dict]) -> str:
     return out
 
 
-def generate_cpp_models() -> str:
+# ---------------------------------------------------------------------------
+# Schema-driven field extraction shared by the C++, Python, and Kotlin model
+# generators. A `SchemaField` mirrors one JSON Schema property: its declared
+# type, whether it's `required`, whether it's nullable (JSON Schema
+# `"type": [<type>, "null"]`), and any `default`/`const` annotation.
+# ---------------------------------------------------------------------------
+
+class SchemaField:
+    __slots__ = ("name", "required", "kind", "nullable", "prop")
+
+    def __init__(self, name: str, required: bool, kind: str, nullable: bool, prop: Dict):
+        self.name = name
+        self.required = required
+        self.kind = kind
+        self.nullable = nullable
+        self.prop = prop
+
+    @property
+    def has_default(self) -> bool:
+        return "default" in self.prop or "const" in self.prop
+
+    @property
+    def default(self) -> Any:
+        if "default" in self.prop:
+            return self.prop["default"]
+        return self.prop.get("const")
+
+
+def _field_kind(prop: Dict) -> Tuple[str, bool]:
+    if "$ref" in prop:
+        return "ref", False
+
+    raw_type = prop.get("type")
+    types = raw_type if isinstance(raw_type, list) else [raw_type]
+    nullable = "null" in types
+    base_types = [t for t in types if t != "null"]
+    t = base_types[0] if base_types else None
+
+    if t == "integer":
+        kind = "int64" if prop.get("maximum") == INT64_MAX else "int32"
+    elif t == "string":
+        kind = "enum" if "enum" in prop else "string"
+    elif t == "boolean":
+        kind = "bool"
+    elif t == "array":
+        items = prop.get("items", {})
+        if items.get("type") == "string":
+            kind = "array_string"
+        else:
+            raise ValueError(f"Unsupported array item schema for codegen: {items}")
+    elif t == "object":
+        kind = "object_inline" if "properties" in prop else "object_generic"
+    else:
+        raise ValueError(f"Unsupported schema property type for codegen: {prop}")
+
+    return kind, nullable
+
+
+def schema_fields(schema: Dict) -> List[SchemaField]:
+    """Extract fields from a JSON Schema object, in declaration order.
+
+    Both `contracts/schemas/common/*.schema.json` top-level documents and
+    inline nested object schemas (e.g. EvidenceEnvelopeV1's `validity_gate`
+    property) are supported, since both are plain `{"properties": ...,
+    "required": [...]}` shapes.
+    """
+    required = set(schema.get("required", []))
+    fields = []
+    for name, prop in schema.get("properties", {}).items():
+        kind, nullable = _field_kind(prop)
+        fields.append(SchemaField(name, name in required, kind, nullable, prop))
+    return fields
+
+
+def _effective_has_default(f: SchemaField) -> bool:
+    """True if the generated binding gives this field a default value.
+
+    Every field the schema doesn't mark required ends up with *some*
+    default (null/empty/zero) in the generated language; a required field
+    only gets one if the schema explicitly says so via `default`/`const`.
+    """
+    if f.has_default:
+        return True
+    return not f.required
+
+
+def _grouped_fields(fields: List[SchemaField]) -> List[SchemaField]:
+    """Reorder so fields with no default precede fields that have one.
+
+    Python dataclasses and Kotlin data classes both require constructor
+    parameters without a default to precede those with one; C++ aggregate
+    initialization has no such constraint, so C++ rendering uses the raw
+    schema declaration order instead.
+    """
+    no_default = [f for f in fields if not _effective_has_default(f)]
+    with_default = [f for f in fields if _effective_has_default(f)]
+    return no_default + with_default
+
+
+# ---------------------------------------------------------------------------
+# C++ model generation
+# ---------------------------------------------------------------------------
+
+def _cpp_base_type(f: SchemaField) -> str:
+    if f.kind == "ref":
+        return REF_STRUCT_NAMES[f.prop["$ref"]]
+    if f.kind == "object_inline":
+        return INLINE_STRUCT_NAMES[f.name]
+    if f.kind == "enum":
+        return ENUM_TYPE_BY_FIELD[f.name]
+    if f.kind == "int64":
+        return "int64_t"
+    if f.kind == "int32":
+        return "uint32_t"
+    if f.kind == "string":
+        return "std::string"
+    if f.kind == "bool":
+        return "bool"
+    if f.kind == "array_string":
+        return "std::vector<std::string>"
+    if f.kind == "object_generic":
+        return "PayloadT"
+    raise ValueError(f"Unhandled kind for C++ type: {f.kind}")
+
+
+def _cpp_field_type(f: SchemaField) -> str:
+    base = _cpp_base_type(f)
+    if f.nullable:
+        return f"std::optional<{base}>"
+    return base
+
+
+def _cpp_field_default(f: SchemaField) -> str:
+    if f.nullable:
+        return "std::nullopt"
+    if f.kind in ("array_string", "ref", "object_inline", "object_generic", "string"):
+        if f.kind == "string" and f.has_default:
+            return json.dumps(f.default)
+        return ""
+    if f.kind == "bool":
+        val = f.default if f.has_default else False
+        return "true" if val else "false"
+    if f.kind in ("int32", "int64"):
+        val = f.default if f.has_default else 0
+        return str(val)
+    if f.kind == "enum":
+        val = f.default if f.has_default else f.prop["enum"][0]
+        return f"{ENUM_TYPE_BY_FIELD[f.name]}::{val}"
+    raise ValueError(f"Unhandled kind for C++ default: {f.kind}")
+
+
+def _cpp_struct_body(fields: List[SchemaField]) -> List[str]:
+    lines = []
+    for f in fields:
+        cpp_type = _cpp_field_type(f)
+        default = _cpp_field_default(f)
+        lines.append(f"    {cpp_type} {f.name}{{{default}}};")
+    return lines
+
+
+def generate_cpp_models(schemas: Dict[str, Dict]) -> str:
+    ts_fields = schema_fields(schemas["timestamp_v1.schema.json"])
+    prov_fields = schema_fields(schemas["provenance_v1.schema.json"])
+    envelope_schema = schemas["evidence_envelope_v1.schema.json"]
+    gate_fields = schema_fields(envelope_schema["properties"]["validity_gate"])
+    envelope_fields = schema_fields(envelope_schema)
+
     out = make_header("contracts/schemas/common/*.schema.json", "//")
     out += "#pragma once\n\n"
     out += "#include <cstdint>\n"
@@ -134,186 +330,178 @@ def generate_cpp_models() -> str:
     out += "namespace sih26168::contracts {\n\n"
 
     out += "struct TimestampV1 {\n"
-    out += "    uint64_t epoch_ns{0};\n"
-    out += "    uint64_t arrival_elapsed_realtime_ns{0};\n"
-    out += "    std::optional<uint64_t> source_timestamp_ns{std::nullopt};\n"
-    out += "    std::string clock_id{};\n"
+    out += "\n".join(_cpp_struct_body(ts_fields)) + "\n"
     out += "};\n\n"
 
     out += "struct ProvenanceV1 {\n"
-    out += "    std::string evidence_id{};\n"
-    out += "    std::string session_id{};\n"
-    out += "    std::string stream_id{};\n"
-    out += "    std::optional<std::string> device_id{std::nullopt};\n"
-    out += "    std::optional<std::string> build_id{std::nullopt};\n"
-    out += "    ProvenanceTypeV1 provenance_type{ProvenanceTypeV1::LIVE_DEVICE};\n"
-    out += "    bool synthetic{false};\n"
-    out += "    std::vector<std::string> contributing_evidence_ids{};\n"
+    out += "\n".join(_cpp_struct_body(prov_fields)) + "\n"
     out += "};\n\n"
 
     out += "struct ValidityGateV1 {\n"
-    out += "    bool is_finite{true};\n"
-    out += "    bool is_valid{true};\n"
-    out += "    uint32_t flags{0};\n"
-    out += "    std::optional<std::string> rejection_code{std::nullopt};\n"
+    out += "\n".join(_cpp_struct_body(gate_fields)) + "\n"
     out += "};\n\n"
 
+    # The envelope's payload is domain-specific (RawSensorSample,
+    # LocationGnssFix, ...): EvidenceEnvelopeV1 is a template so each
+    # concrete instantiation carries a typed payload member, matching the
+    # schema's `payload` (required, type: object) property instead of
+    # omitting it.
+    out += "template <typename PayloadT>\n"
     out += "struct EvidenceEnvelopeV1 {\n"
-    out += "    uint32_t schema_version{1};\n"
-    out += "    std::string payload_type{};\n"
-    out += "    TimestampV1 timestamp{};\n"
-    out += "    ProvenanceV1 provenance{};\n"
-    out += "    ValidityGateV1 validity_gate{};\n"
+    out += "\n".join(_cpp_struct_body(envelope_fields)) + "\n"
     out += "};\n\n"
 
     out += "} // namespace sih26168::contracts\n"
     return out
 
 
-def generate_python_enums(enums: Dict[str, Dict]) -> str:
-    out = make_header("contracts/enums/*.json", "#")
-    out += "from enum import Enum\n\n"
+# ---------------------------------------------------------------------------
+# Python model generation
+# ---------------------------------------------------------------------------
 
-    enum_list: List[Tuple[str, List[str]]] = []
-    for filename, data in sorted(enums.items()):
-        name = data.get("enum_name")
-        if name and "values" in data:
-            enum_list.append((name, data["values"]))
-        elif filename == "navigation_states_v1.json":
-            if "provenance" in data:
-                enum_list.append(("ProvenanceClassificationV1", data["provenance"]))
+def _py_type_annotation(f: SchemaField) -> str:
+    if f.kind == "ref":
+        base = REF_STRUCT_NAMES[f.prop["$ref"]]
+    elif f.kind == "object_inline":
+        base = INLINE_STRUCT_NAMES[f.name]
+    elif f.kind == "enum":
+        base = ENUM_TYPE_BY_FIELD[f.name]
+    elif f.kind in ("int32", "int64"):
+        base = "int"
+    elif f.kind == "string":
+        base = "str"
+    elif f.kind == "bool":
+        base = "bool"
+    elif f.kind == "array_string":
+        return "List[str]"
+    elif f.kind == "object_generic":
+        return "Dict[str, Any]"
+    else:
+        raise ValueError(f"Unhandled kind for Python type: {f.kind}")
+    if f.nullable:
+        return f"Optional[{base}]"
+    return base
 
-    if not any(name == "ProvenanceTypeV1" for name, _ in enum_list):
-        enum_list.append(("ProvenanceTypeV1", ["LIVE_DEVICE", "DETERMINISTIC_REPLAY", "LIVE", "REPLAY"]))
 
-    for enum_name, values in sorted(enum_list, key=lambda x: x[0]):
-        out += f"class {enum_name}(str, Enum):\n"
-        for v in values:
-            out += f'    {v} = "{v}"\n'
-        out += "\n\n"
+def _py_default_literal(f: SchemaField) -> Optional[str]:
+    if f.kind == "array_string":
+        return None  # rendered via field(default_factory=list)
+    if not _effective_has_default(f):
+        return None
+    if f.nullable and not f.has_default:
+        return "None"
+    if f.has_default:
+        val = f.default
+        if f.kind == "bool":
+            return "True" if val else "False"
+        if f.kind == "enum":
+            return f"{ENUM_TYPE_BY_FIELD[f.name]}.{val}"
+        if f.kind in ("int32", "int64"):
+            return str(val)
+        if f.kind == "string":
+            return json.dumps(val)
+        raise ValueError(f"Unhandled kind for Python default: {f.kind}")
+    if f.kind == "bool":
+        return "False"
+    if f.kind in ("int32", "int64"):
+        return "0"
+    if f.kind == "string":
+        return '""'
+    raise ValueError(f"Unhandled kind for Python fallback default: {f.kind}")
 
-    return out.rstrip() + "\n"
+
+def _py_to_dict_expr(f: SchemaField) -> str:
+    if f.kind in ("ref", "object_inline"):
+        return f"self.{f.name}.to_dict()"
+    if f.kind == "enum":
+        return f'self.{f.name}.value if hasattr(self.{f.name}, "value") else str(self.{f.name})'
+    if f.kind == "array_string":
+        return f"list(self.{f.name})"
+    return f"self.{f.name}"
 
 
-def generate_python_models() -> str:
+def _py_from_dict_expr(f: SchemaField) -> str:
+    key = f.name
+    if f.kind == "ref":
+        struct_name = REF_STRUCT_NAMES[f.prop["$ref"]]
+        return f'{struct_name}.from_dict(data["{key}"])'
+    if f.kind == "object_inline":
+        struct_name = INLINE_STRUCT_NAMES[f.name]
+        return f'{struct_name}.from_dict(data["{key}"])'
+    if f.kind == "object_generic":
+        return f'dict(data["{key}"])'
+    if f.kind == "array_string":
+        return f'list(data.get("{key}", []))'
+    if f.nullable:
+        return f'data.get("{key}")'
+    if f.kind == "enum":
+        enum_type = ENUM_TYPE_BY_FIELD[f.name]
+        if f.required and not f.has_default:
+            return f'{enum_type}(data["{key}"])'
+        default_repr = json.dumps(f.default)
+        return f'{enum_type}(data.get("{key}", {default_repr}))'
+    caster = {"bool": "bool", "int32": "int", "int64": "int", "string": "str"}[f.kind]
+    if f.required and not f.has_default:
+        return f'{caster}(data["{key}"])'
+    default = f.default if f.has_default else (False if f.kind == "bool" else 0)
+    return f'{caster}(data.get("{key}", {default!r}))'
+
+
+def _py_dataclass(name: str, fields: List[SchemaField]) -> str:
+    ordered = _grouped_fields(fields)
+    lines = [f"@dataclass(frozen=True)", f"class {name}:"]
+    for f in ordered:
+        ann = _py_type_annotation(f)
+        if f.kind == "array_string":
+            lines.append(f"    {f.name}: {ann} = field(default_factory=list)")
+            continue
+        default = _py_default_literal(f)
+        if default is None:
+            lines.append(f"    {f.name}: {ann}")
+        else:
+            lines.append(f"    {f.name}: {ann} = {default}")
+    lines.append("")
+
+    lines.append("    def to_dict(self) -> Dict[str, Any]:")
+    base_fields = [f for f in fields if not (f.nullable and not f.has_default)]
+    optional_fields = [f for f in fields if f.nullable and not f.has_default]
+    lines.append("        res: Dict[str, Any] = {")
+    for f in base_fields:
+        lines.append(f'            "{f.name}": {_py_to_dict_expr(f)},')
+    lines.append("        }")
+    for f in optional_fields:
+        lines.append(f"        if self.{f.name} is not None:")
+        lines.append(f'            res["{f.name}"] = {_py_to_dict_expr(f)}')
+    lines.append("        return res")
+    lines.append("")
+
+    lines.append("    @classmethod")
+    lines.append(f"    def from_dict(cls, data: Dict[str, Any]) -> {name}:")
+    lines.append("        return cls(")
+    for f in fields:
+        lines.append(f"            {f.name}={_py_from_dict_expr(f)},")
+    lines.append("        )")
+
+    return "\n".join(lines) + "\n"
+
+
+def generate_python_models(schemas: Dict[str, Dict]) -> str:
+    ts_fields = schema_fields(schemas["timestamp_v1.schema.json"])
+    prov_fields = schema_fields(schemas["provenance_v1.schema.json"])
+    envelope_schema = schemas["evidence_envelope_v1.schema.json"]
+    gate_fields = schema_fields(envelope_schema["properties"]["validity_gate"])
+    envelope_fields = schema_fields(envelope_schema)
+
     out = make_header("contracts/schemas/common/*.schema.json", "#")
     out += "from __future__ import annotations\n\n"
     out += "from dataclasses import dataclass, field\n"
     out += "from typing import Any, Dict, List, Optional\n\n"
     out += "from .enums import ProvenanceTypeV1\n\n\n"
 
-    out += "@dataclass(frozen=True)\n"
-    out += "class TimestampV1:\n"
-    out += "    epoch_ns: int\n"
-    out += "    arrival_elapsed_realtime_ns: int\n"
-    out += "    clock_id: str\n"
-    out += "    source_timestamp_ns: Optional[int] = None\n\n"
-    out += "    def to_dict(self) -> Dict[str, Any]:\n"
-    out += "        res: Dict[str, Any] = {\n"
-    out += '            "epoch_ns": self.epoch_ns,\n'
-    out += '            "arrival_elapsed_realtime_ns": self.arrival_elapsed_realtime_ns,\n'
-    out += '            "clock_id": self.clock_id,\n'
-    out += "        }\n"
-    out += "        if self.source_timestamp_ns is not None:\n"
-    out += '            res["source_timestamp_ns"] = self.source_timestamp_ns\n'
-    out += "        return res\n\n"
-    out += "    @classmethod\n"
-    out += "    def from_dict(cls, data: Dict[str, Any]) -> TimestampV1:\n"
-    out += "        return cls(\n"
-    out += '            epoch_ns=int(data["epoch_ns"]),\n'
-    out += '            arrival_elapsed_realtime_ns=int(data["arrival_elapsed_realtime_ns"]),\n'
-    out += '            clock_id=str(data["clock_id"]),\n'
-    out += '            source_timestamp_ns=data.get("source_timestamp_ns"),\n'
-    out += "        )\n\n\n"
-
-    out += "@dataclass(frozen=True)\n"
-    out += "class ProvenanceV1:\n"
-    out += "    evidence_id: str\n"
-    out += "    session_id: str\n"
-    out += "    stream_id: str\n"
-    out += "    provenance_type: ProvenanceTypeV1 = ProvenanceTypeV1.LIVE_DEVICE\n"
-    out += "    synthetic: bool = False\n"
-    out += "    device_id: Optional[str] = None\n"
-    out += "    build_id: Optional[str] = None\n"
-    out += "    contributing_evidence_ids: List[str] = field(default_factory=list)\n\n"
-    out += "    def to_dict(self) -> Dict[str, Any]:\n"
-    out += "        res: Dict[str, Any] = {\n"
-    out += '            "evidence_id": self.evidence_id,\n'
-    out += '            "session_id": self.session_id,\n'
-    out += '            "stream_id": self.stream_id,\n'
-    out += '            "provenance_type": self.provenance_type.value if hasattr(self.provenance_type, "value") else str(self.provenance_type),\n'
-    out += '            "synthetic": self.synthetic,\n'
-    out += '            "contributing_evidence_ids": list(self.contributing_evidence_ids),\n'
-    out += "        }\n"
-    out += "        if self.device_id is not None:\n"
-    out += '            res["device_id"] = self.device_id\n'
-    out += "        if self.build_id is not None:\n"
-    out += '            res["build_id"] = self.build_id\n'
-    out += "        return res\n\n"
-    out += "    @classmethod\n"
-    out += "    def from_dict(cls, data: Dict[str, Any]) -> ProvenanceV1:\n"
-    out += "        return cls(\n"
-    out += '            evidence_id=str(data["evidence_id"]),\n'
-    out += '            session_id=str(data["session_id"]),\n'
-    out += '            stream_id=str(data["stream_id"]),\n'
-    out += '            provenance_type=ProvenanceTypeV1(data["provenance_type"]),\n'
-    out += '            synthetic=bool(data.get("synthetic", False)),\n'
-    out += '            device_id=data.get("device_id"),\n'
-    out += '            build_id=data.get("build_id"),\n'
-    out += '            contributing_evidence_ids=list(data.get("contributing_evidence_ids", [])),\n'
-    out += "        )\n\n\n"
-
-    out += "@dataclass(frozen=True)\n"
-    out += "class ValidityGateV1:\n"
-    out += "    is_finite: bool = True\n"
-    out += "    is_valid: bool = True\n"
-    out += "    flags: int = 0\n"
-    out += "    rejection_code: Optional[str] = None\n\n"
-    out += "    def to_dict(self) -> Dict[str, Any]:\n"
-    out += "        res: Dict[str, Any] = {\n"
-    out += '            "is_finite": self.is_finite,\n'
-    out += '            "is_valid": self.is_valid,\n'
-    out += '            "flags": self.flags,\n'
-    out += "        }\n"
-    out += "        if self.rejection_code is not None:\n"
-    out += '            res["rejection_code"] = self.rejection_code\n'
-    out += "        return res\n\n"
-    out += "    @classmethod\n"
-    out += "    def from_dict(cls, data: Dict[str, Any]) -> ValidityGateV1:\n"
-    out += "        return cls(\n"
-    out += '            is_finite=bool(data.get("is_finite", True)),\n'
-    out += '            is_valid=bool(data.get("is_valid", True)),\n'
-    out += '            flags=int(data.get("flags", 0)),\n'
-    out += '            rejection_code=data.get("rejection_code"),\n'
-    out += "        )\n\n\n"
-
-    out += "@dataclass(frozen=True)\n"
-    out += "class EvidenceEnvelopeV1:\n"
-    out += "    payload_type: str\n"
-    out += "    timestamp: TimestampV1\n"
-    out += "    provenance: ProvenanceV1\n"
-    out += "    payload: Dict[str, Any]\n"
-    out += "    validity_gate: ValidityGateV1\n"
-    out += "    schema_version: int = 1\n\n"
-    out += "    def to_dict(self) -> Dict[str, Any]:\n"
-    out += "        return {\n"
-    out += '            "schema_version": self.schema_version,\n'
-    out += '            "payload_type": self.payload_type,\n'
-    out += '            "timestamp": self.timestamp.to_dict(),\n'
-    out += '            "provenance": self.provenance.to_dict(),\n'
-    out += '            "payload": self.payload,\n'
-    out += '            "validity_gate": self.validity_gate.to_dict(),\n'
-    out += "        }\n\n"
-    out += "    @classmethod\n"
-    out += "    def from_dict(cls, data: Dict[str, Any]) -> EvidenceEnvelopeV1:\n"
-    out += "        return cls(\n"
-    out += '            schema_version=int(data.get("schema_version", 1)),\n'
-    out += '            payload_type=str(data["payload_type"]),\n'
-    out += '            timestamp=TimestampV1.from_dict(data["timestamp"]),\n'
-    out += '            provenance=ProvenanceV1.from_dict(data["provenance"]),\n'
-    out += '            payload=dict(data["payload"]),\n'
-    out += '            validity_gate=ValidityGateV1.from_dict(data["validity_gate"]),\n'
-    out += "        )\n"
+    out += _py_dataclass("TimestampV1", ts_fields) + "\n\n"
+    out += _py_dataclass("ProvenanceV1", prov_fields) + "\n\n"
+    out += _py_dataclass("ValidityGateV1", gate_fields) + "\n\n"
+    out += _py_dataclass("EvidenceEnvelopeV1", envelope_fields)
 
     return out.rstrip() + "\n"
 
@@ -384,44 +572,97 @@ def generate_kotlin_enums(enums: Dict[str, Dict]) -> str:
     return out.rstrip() + "\n"
 
 
-def generate_kotlin_models() -> str:
+# ---------------------------------------------------------------------------
+# Kotlin model generation
+# ---------------------------------------------------------------------------
+
+def _kt_field_name(name: str) -> str:
+    parts = name.split("_")
+    return parts[0] + "".join(p.capitalize() for p in parts[1:])
+
+
+def _kt_base_type(f: SchemaField) -> str:
+    if f.kind == "ref":
+        return REF_STRUCT_NAMES[f.prop["$ref"]]
+    if f.kind == "object_inline":
+        return INLINE_STRUCT_NAMES[f.name]
+    if f.kind == "enum":
+        return ENUM_TYPE_BY_FIELD[f.name]
+    if f.kind in ("int32", "int64"):
+        return "Long"
+    if f.kind == "string":
+        return "String"
+    if f.kind == "bool":
+        return "Boolean"
+    if f.kind == "array_string":
+        return "List<String>"
+    if f.kind == "object_generic":
+        return "T"
+    raise ValueError(f"Unhandled kind for Kotlin type: {f.kind}")
+
+
+def _kt_field_type(f: SchemaField) -> str:
+    base = _kt_base_type(f)
+    if f.kind == "array_string":
+        return base
+    if f.nullable:
+        return f"{base}?"
+    return base
+
+
+def _kt_field_default(f: SchemaField) -> Optional[str]:
+    if f.kind == "array_string":
+        return "emptyList()"
+    if f.nullable:
+        return "null"
+    if not _effective_has_default(f):
+        return None
+    if f.kind == "bool":
+        val = f.default if f.has_default else False
+        return "true" if val else "false"
+    if f.kind in ("int32", "int64"):
+        val = f.default if f.has_default else 0
+        return f"{val}L"
+    if f.kind == "enum":
+        val = f.default if f.has_default else f.prop["enum"][0]
+        return f"{ENUM_TYPE_BY_FIELD[f.name]}.{val}"
+    if f.kind == "string" and f.has_default:
+        return json.dumps(f.default)
+    return None
+
+
+def _kt_data_class(name: str, fields: List[SchemaField], type_param: Optional[str] = None) -> str:
+    ordered = _grouped_fields(fields)
+    header = f"data class {name}" + (f"<{type_param}>" if type_param else "") + "(\n"
+    body_lines = []
+    for f in ordered:
+        kt_type = _kt_field_type(f)
+        default = _kt_field_default(f)
+        field_name = _kt_field_name(f.name)
+        if default is not None:
+            body_lines.append(f"    val {field_name}: {kt_type} = {default}")
+        else:
+            body_lines.append(f"    val {field_name}: {kt_type}")
+    return header + ",\n".join(body_lines) + "\n)\n"
+
+
+def generate_kotlin_models(schemas: Dict[str, Dict]) -> str:
+    ts_fields = schema_fields(schemas["timestamp_v1.schema.json"])
+    prov_fields = schema_fields(schemas["provenance_v1.schema.json"])
+    envelope_schema = schemas["evidence_envelope_v1.schema.json"]
+    gate_fields = schema_fields(envelope_schema["properties"]["validity_gate"])
+    envelope_fields = schema_fields(envelope_schema)
+
     out = make_header("contracts/schemas/common/*.schema.json", "//")
     out += "package org.sih26168.contracts.models\n\n"
     out += "import org.sih26168.contracts.enums.ProvenanceTypeV1\n\n"
 
-    out += "data class TimestampV1(\n"
-    out += "    val epochNs: Long,\n"
-    out += "    val arrivalElapsedRealtimeNs: Long,\n"
-    out += "    val clockId: String,\n"
-    out += "    val sourceTimestampNs: Long? = null\n"
-    out += ")\n\n"
-
-    out += "data class ProvenanceV1(\n"
-    out += "    val evidenceId: String,\n"
-    out += "    val sessionId: String,\n"
-    out += "    val streamId: String,\n"
-    out += "    val provenanceType: ProvenanceTypeV1 = ProvenanceTypeV1.LIVE_DEVICE,\n"
-    out += "    val synthetic: Boolean = false,\n"
-    out += "    val deviceId: String? = null,\n"
-    out += "    val buildId: String? = null,\n"
-    out += "    val contributingEvidenceIds: List<String> = emptyList()\n"
-    out += ")\n\n"
-
-    out += "data class ValidityGateV1(\n"
-    out += "    val isFinite: Boolean = true,\n"
-    out += "    val isValid: Boolean = true,\n"
-    out += "    val flags: Long = 0L,\n"
-    out += "    val rejectionCode: String? = null\n"
-    out += ")\n\n"
-
-    out += "data class EvidenceEnvelopeV1<T>(\n"
-    out += "    val schemaVersion: Int = 1,\n"
-    out += "    val payloadType: String,\n"
-    out += "    val timestamp: TimestampV1,\n"
-    out += "    val provenance: ProvenanceV1,\n"
-    out += "    val payload: T,\n"
-    out += "    val validityGate: ValidityGateV1\n"
-    out += ")\n"
+    out += _kt_data_class("TimestampV1", ts_fields) + "\n"
+    out += _kt_data_class("ProvenanceV1", prov_fields) + "\n"
+    out += _kt_data_class("ValidityGateV1", gate_fields) + "\n"
+    # Mirrors the C++ template: the payload is domain-specific, so the
+    # envelope stays generic over its payload type rather than dropping it.
+    out += _kt_data_class("EvidenceEnvelopeV1", envelope_fields, type_param="T")
 
     return out
 
@@ -439,18 +680,43 @@ def generate_all_bindings() -> Dict[Path, str]:
 
     # 2. C++
     bindings[GENERATED_DIR / "cpp/enums.hpp"] = generate_cpp_enums(enums)
-    bindings[GENERATED_DIR / "cpp/models.hpp"] = generate_cpp_models()
+    bindings[GENERATED_DIR / "cpp/models.hpp"] = generate_cpp_models(schemas)
 
     # 3. Python
     bindings[GENERATED_DIR / "python/__init__.py"] = generate_python_init()
     bindings[GENERATED_DIR / "python/enums.py"] = generate_python_enums(enums)
-    bindings[GENERATED_DIR / "python/models.py"] = generate_python_models()
+    bindings[GENERATED_DIR / "python/models.py"] = generate_python_models(schemas)
 
     # 4. Kotlin
     bindings[GENERATED_DIR / "kotlin/Enums.kt"] = generate_kotlin_enums(enums)
-    bindings[GENERATED_DIR / "kotlin/Models.kt"] = generate_kotlin_models()
+    bindings[GENERATED_DIR / "kotlin/Models.kt"] = generate_kotlin_models(schemas)
 
     return bindings
+
+
+def generate_python_enums(enums: Dict[str, Dict]) -> str:
+    out = make_header("contracts/enums/*.json", "#")
+    out += "from enum import Enum\n\n"
+
+    enum_list: List[Tuple[str, List[str]]] = []
+    for filename, data in sorted(enums.items()):
+        name = data.get("enum_name")
+        if name and "values" in data:
+            enum_list.append((name, data["values"]))
+        elif filename == "navigation_states_v1.json":
+            if "provenance" in data:
+                enum_list.append(("ProvenanceClassificationV1", data["provenance"]))
+
+    if not any(name == "ProvenanceTypeV1" for name, _ in enum_list):
+        enum_list.append(("ProvenanceTypeV1", ["LIVE_DEVICE", "DETERMINISTIC_REPLAY", "LIVE", "REPLAY"]))
+
+    for enum_name, values in sorted(enum_list, key=lambda x: x[0]):
+        out += f"class {enum_name}(str, Enum):\n"
+        for v in values:
+            out += f'    {v} = "{v}"\n'
+        out += "\n\n"
+
+    return out.rstrip() + "\n"
 
 
 def main() -> int:
@@ -473,8 +739,11 @@ def main() -> int:
             if not path.is_file():
                 drift_errors.append(f"missing generated file: {rel_path}")
             else:
-                actual_content = path.read_text(encoding="utf-8")
-                if actual_content != expected_content:
+                # Compare raw bytes (not read_text()) so line-ending drift
+                # (e.g. CRLF vs LF) is caught the same way the idempotency
+                # test catches it, instead of being normalized away.
+                actual_bytes = path.read_bytes()
+                if actual_bytes != expected_content.encode("utf-8"):
                     drift_errors.append(f"drift in generated file: {rel_path}")
 
         if drift_errors:
