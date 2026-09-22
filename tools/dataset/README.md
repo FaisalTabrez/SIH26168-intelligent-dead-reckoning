@@ -33,11 +33,28 @@ path under the repo root regardless of Git tracking status.
   source revision. This activation does not grant dataset rights or claim an
   S0 pass; private bytes and paths remain outside Git.
 
+- `grouping.py` — WP-10.3 (Issue #81). Deterministic duplicate and
+  parent-session grouping: `compute_groups` unions files that are
+  byte-identical (same SHA-256) or that declare the same
+  `parent_session_id` into one `group_id` (via union-find, so the merge
+  is transitive), so WP-10.4's split construction can guarantee zero
+  overlap between train/validation/test at the group level.
+  `duplicate_members_by_group` reports which groups contain an exact
+  duplicate, for audit evidence.
+
+  Group IDs hash a compact JSON array of sorted unique member identifiers,
+  preserving boundaries even when identifiers contain control characters.
+  This replaces the earlier unit-separator encoding and changes generated
+  IDs for existing groups. Regenerate `group_ids`, `file_group_ids`, and all
+  derived splits together from the original file/session records under a new
+  manifest revision; never combine old and regenerated IDs or overwrite an
+  immutable manifest. Downstream training runs must reference that new
+  manifest and its regenerated splits.
+
 ## Scope boundaries
 
 This directory intentionally does **not** yet implement:
 
-- duplicate/parent-session grouping (WP-10.3 / Issue #81)
 - leakage-safe split construction (WP-10.4 / Issue #82)
 - the runtime-feature/forbidden-label firewall (WP-10.5 / Issue #83)
 - leakage canary and private-data exclusion tests (WP-10.6 / Issue #84)
