@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sih26168.invalid/tools/dataset/config/feature_firewall_config.schema.json",
+  "title": "RuntimeFeatureForbiddenLabelFirewallConfigV1",
+  "description": "WP-10.5 (Issue #83): structural shape of the runtime-feature/forbidden-label firewall configuration consumed by tools/dataset/feature_firewall.py. This is repository tooling configuration, not part of the I-20 DatasetManifest contract itself.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "status",
+    "runtime_allowed_features",
+    "forbidden_labels"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "integer",
+      "const": 1
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "TEMPLATE_PENDING_REVIEW",
+        "ACTIVE"
+      ],
+      "description": "ACTIVE for the reviewed runtime and forbidden inventories. TEMPLATE_PENDING_REVIEW remains available only for unresolved replacement documents; tools/dataset/feature_firewall.py refuses non-ACTIVE or placeholder-bearing configurations."
+    },
+    "runtime_allowed_features": {
+      "type": "array",
+      "description": "Feature names genuinely available to the on-device model at inference time (e.g. names derived from I-01 RawSensorSample / I-02 GNSS fix style live signals). Anything not on this list is denied by default -- deny-by-default, not deny-by-exception.",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true,
+      "minItems": 1
+    },
+    "forbidden_labels": {
+      "type": "array",
+      "description": "Collision-safe `<schema_id>.<interpreted_field>` IDs for vehicle/reference fields that must never reach runtime tensors, normalization, preprocessing, post-processing, or display smoothing. Checked even if absent from runtime_allowed_features, as defense in depth.",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true,
+      "minItems": 1
+    }
+  }
+}

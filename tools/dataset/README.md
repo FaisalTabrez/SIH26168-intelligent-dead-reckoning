@@ -50,6 +50,7 @@ path under the repo root regardless of Git tracking status.
   manifest revision; never combine old and regenerated IDs or overwrite an
   immutable manifest. Downstream training runs must reference that new
   manifest and its regenerated splits.
+
 - `splits.py` — WP-10.4 (Issue #82). Leakage-safe grouped dataset
   splits: `assign_splits` deterministically buckets each `group_id`
   (from `grouping.py`) into train/validation/test by a stable hash of
@@ -59,11 +60,21 @@ path under the repo root regardless of Git tracking status.
   `validate_splits_cover_groups` are defense-in-depth checks for
   externally-constructed splits dictionaries.
 
+- `feature_firewall.py` — WP-10.5 (Issue #83). Deny-by-default
+  enforcement of the runtime-feature/forbidden-label split: `classify_feature`
+  and `audit_feature_set` label each proposed feature name as
+  `ALLOWED`, `FORBIDDEN_LABEL` (a ground-truth-only field such as a
+  vehicle CAN/telemetry label or precise reference position), or
+  `NOT_RUNTIME_AVAILABLE`; `enforce_feature_set` raises on anything but
+  `ALLOWED`. The shipped configuration is `ACTIVE` with the frozen
+  nine-channel phone-IMU profile and all 29 audited `V29_MAIN` fields as
+  forbidden runtime inputs. `FEATURE_CONTRACT_PROPOSAL.md` records the exact
+  mapping, evidence hashes, and remaining rights/extractor gates.
+
 ## Scope boundaries
 
 This directory intentionally does **not** yet implement:
 
-- the runtime-feature/forbidden-label firewall (WP-10.5 / Issue #83)
 - leakage canary and private-data exclusion tests (WP-10.6 / Issue #84)
 
 Each is its own bounded work package; see `docs/architecture/SIH26168_High_Level_Architecture_Revision3.md`
