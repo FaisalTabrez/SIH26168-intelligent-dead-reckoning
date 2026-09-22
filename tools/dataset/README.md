@@ -24,12 +24,19 @@ path under the repo root regardless of Git tracking status.
   Defaults to a sibling directory of the repo checkout
   (`../sih26168-private-data`); override with the
   `SIH26168_PRIVATE_DATA_ROOT` environment variable.
+- `schema_allowlist.py` — WP-10.2 (Issue #80). Enforcement engine for the
+  six-schema IO-VNBD validation allowlist: `require_active_allowlist`,
+  `classify_schemas`, `enforce_manifest_against_allowlist`. The shipped
+  `config/io_vnbd_schema_allowlist.json` is `ACTIVE` with the six structural
+  identifiers transcribed from the accepted S0 audit and its 144-row schema
+  register. `SCHEMA_INVENTORY.md` records sanitized hashes and the audited
+  source revision. This activation does not grant dataset rights or claim an
+  S0 pass; private bytes and paths remain outside Git.
 
 ## Scope boundaries
 
 This directory intentionally does **not** yet implement:
 
-- the six-schema IO-VNBD validation allowlist (WP-10.2 / Issue #80)
 - duplicate/parent-session grouping (WP-10.3 / Issue #81)
 - leakage-safe split construction (WP-10.4 / Issue #82)
 - the runtime-feature/forbidden-label firewall (WP-10.5 / Issue #83)
