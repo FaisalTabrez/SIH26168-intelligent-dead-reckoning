@@ -4,12 +4,12 @@
 
 - Snapshot classification: `generated-and-sanitized`
 - Source repository: `akhileshkancharla/SIH26168-intelligent-dead-reckoning`
-- Source branch: `issue/WP-09.1-compose-app-shell`
-- Source parent commit: `a29c6b2dedbd74a061ed55bcacbeb4d5a42d0373`
+- Source branch: `issue/WP-09.2-integrate-maplibre`
+- Source parent commit: `1f2b9889108cbec88ddda4d05dae5d59dc13a581`
 - Graphify version: `0.9.53`
 - Graphify mode: code-only static extraction; semantic document extraction disabled
-- Counts: 1954 nodes, 3022 edges, 154 communities
-- Edge evidence: 2974 extracted, 48 inferred
+- Counts: 2030 nodes, 3203 edges, 162 communities
+- Edge evidence: 3139 extracted, 64 inferred
 - CI mode: `snapshot-validation-only`
 
 ## VERIFIED FROM CODE
@@ -22,7 +22,7 @@ The C++ core is host-buildable, while Android acquisition, JNI, training, map, a
 
 | Module | Extracted source files | Current interpretation |
 | --- | ---: | --- |
-| Android app | 13 | Launcher/UI scaffold; no sensor-to-position path |
+| Android app | 15 | Launcher/UI scaffold; no sensor-to-position path |
 | Portable core | 22 | Host-buildable S2 core plus contract smoke |
 | Contracts | 23 | Bootstrap replay schema and enum artifacts |
 | Repository automation | 12 | Repository and GitHub governance tooling |
@@ -58,18 +58,18 @@ Current high-degree nodes are primarily repository administration tooling, not n
 | --- | ---: | --- |
 | `configure_project.mjs` | 37 | [tools/bootstrap/configure_project.mjs:L1](../../../tools/bootstrap/configure_project.mjs) |
 | `generate_contract_bindings.py` | 35 | [ci/generate_contract_bindings.py:L1](../../../ci/generate_contract_bindings.py) |
+| `MapLibreMapViewport.kt` | 33 | [android/app/src/main/java/org/sih26168/app/ui/map/MapLibreMapViewport.kt:L1](../../../android/app/src/main/java/org/sih26168/app/ui/map/MapLibreMapViewport.kt) |
 | `reference_oracle.py` | 31 | [core/navigation/verification/python/reference_oracle.py:L1](../../../core/navigation/verification/python/reference_oracle.py) |
+| `ReplayNavigationViewModel` | 30 | [android/app/src/main/java/org/sih26168/app/replay/ReplayNavigationViewModel.kt:L9](../../../android/app/src/main/java/org/sih26168/app/replay/ReplayNavigationViewModel.kt) |
 | `sanitize_graph.py` | 27 | [tools/graphify/sanitize_graph.py:L1](../../../tools/graphify/sanitize_graph.py) |
 | `InitialState` | 26 | [core/navigation/include/sih26168/navigation_core.hpp:L104](../../../core/navigation/include/sih26168/navigation_core.hpp) |
 | `navigation_api.cpp` | 26 | [core/navigation/src/navigation_api.cpp:L1](../../../core/navigation/src/navigation_api.cpp) |
 | `MeasurementInput` | 24 | [core/navigation/include/sih26168/navigation_core.hpp:L141](../../../core/navigation/include/sih26168/navigation_core.hpp) |
 | `run_python_tests.py` | 24 | [core/navigation/verification/python/run_python_tests.py:L1](../../../core/navigation/verification/python/run_python_tests.py) |
-| `StateSnapshot` | 23 | [core/navigation/include/sih26168/navigation_core.hpp:L217](../../../core/navigation/include/sih26168/navigation_core.hpp) |
-| `NavigationCore::Impl` | 23 | [core/navigation/src/navigation_api.cpp:L158](../../../core/navigation/src/navigation_api.cpp) |
 
 ### Weakly connected or orphan candidates
 
-The raw Graphify report identified 761 isolated symbol nodes. This sanitizer independently found 903 repository-backed nodes with degree at most one; the bounded sample below is diagnostic, not deletion evidence.
+The raw Graphify report identified 761 isolated symbol nodes. This sanitizer independently found 902 repository-backed nodes with degree at most one; the bounded sample below is diagnostic, not deletion evidence.
 
 | Node | Degree | Source |
 | --- | ---: | --- |
@@ -82,12 +82,12 @@ The raw Graphify report identified 761 isolated symbol nodes. This sanitizer ind
 | `sih26168-bootstrap` | 0 | [pyproject.toml](../../../pyproject.toml) |
 | `sih26168_bootstrap/__init__.py` | 0 | [tools/bootstrap/src/sih26168_bootstrap/__init__.py](../../../tools/bootstrap/src/sih26168_bootstrap/__init__.py) |
 | `tests/__init__.py` | 0 | [tools/dataset/tests/__init__.py](../../../tools/dataset/tests/__init__.py) |
-| `ReplayIntent.kt` | 1 | [android/app/src/main/java/org/sih26168/app/replay/ReplayIntent.kt](../../../android/app/src/main/java/org/sih26168/app/replay/ReplayIntent.kt) |
 | `Pause` | 1 | [android/app/src/main/java/org/sih26168/app/replay/ReplayIntent.kt](../../../android/app/src/main/java/org/sih26168/app/replay/ReplayIntent.kt) |
 | `Play` | 1 | [android/app/src/main/java/org/sih26168/app/replay/ReplayIntent.kt](../../../android/app/src/main/java/org/sih26168/app/replay/ReplayIntent.kt) |
 | `PresentTelemetry` | 1 | [android/app/src/main/java/org/sih26168/app/replay/ReplayIntent.kt](../../../android/app/src/main/java/org/sih26168/app/replay/ReplayIntent.kt) |
 | `Reset` | 1 | [android/app/src/main/java/org/sih26168/app/replay/ReplayIntent.kt](../../../android/app/src/main/java/org/sih26168/app/replay/ReplayIntent.kt) |
 | `SetSpeedMultiplier` | 1 | [android/app/src/main/java/org/sih26168/app/replay/ReplayIntent.kt](../../../android/app/src/main/java/org/sih26168/app/replay/ReplayIntent.kt) |
+| `Step` | 1 | [android/app/src/main/java/org/sih26168/app/replay/ReplayIntent.kt](../../../android/app/src/main/java/org/sih26168/app/replay/ReplayIntent.kt) |
 
 ### Cycles
 
