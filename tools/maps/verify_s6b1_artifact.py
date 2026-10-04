@@ -11,6 +11,7 @@ import argparse
 import hashlib
 import json
 from pathlib import Path, PurePosixPath
+import re
 import sys
 from typing import Any, BinaryIO
 from zipfile import BadZipFile, ZipFile, ZipInfo
@@ -23,6 +24,7 @@ DEFAULT_REFERENCE = Path(__file__).with_name("s6b1_reference_v1.json")
 DEFAULT_SCHEMA = ROOT / "contracts" / "schemas" / "map_graph_manifest_v1.schema.json"
 BUFFER_SIZE = 1024 * 1024
 MAX_JSON_MEMBER_BYTES = 1024 * 1024
+MAP_VERSION_PATTERN = re.compile(r"^mgit-pbf-([0-9a-f]{16})-v1$")
 
 
 class VerificationError(RuntimeError):
@@ -57,6 +59,25 @@ def sha256_file(path: Path) -> str:
 def require(condition: bool, message: str) -> None:
     if not condition:
         raise VerificationError(message)
+
+
+def verify_map_version_lineage(
+    map_version: object,
+    source_pbf_sha256: object,
+    *,
+    label: str,
+) -> None:
+    require(isinstance(map_version, str), f"{label} map_version must be a string")
+    require(
+        isinstance(source_pbf_sha256, str) and len(source_pbf_sha256) == 64,
+        f"{label} source PBF SHA-256 is invalid",
+    )
+    match = MAP_VERSION_PATTERN.fullmatch(map_version)
+    require(match is not None, f"{label} map_version has invalid S6B1 format")
+    require(
+        source_pbf_sha256.startswith(match.group(1)),
+        f"{label} map_version hash token does not match source PBF SHA-256",
+    )
 
 
 def verify_delivery_file(directory: Path, record: dict[str, Any]) -> Path:
@@ -210,6 +231,11 @@ def verify_artifact(
         raise VerificationError(f"invalid I-21 schema: {exc.message}") from exc
     except jsonschema.ValidationError as exc:
         raise VerificationError(f"reference violates I-21 schema: {exc.message}") from exc
+    verify_map_version_lineage(
+        reference.get("map_version"),
+        reference.get("source_pbf_sha256"),
+        label="reference",
+    )
 
     artifact_dir = artifact_dir.resolve()
     require(artifact_dir.is_dir(), "artifact directory does not exist")
@@ -228,6 +254,11 @@ def verify_artifact(
     manifest_path = verify_delivery_file(artifact_dir, delivery["manifest"])
     archive_path = verify_delivery_file(artifact_dir, delivery["archive"])
     manifest = load_json(manifest_path)
+    verify_map_version_lineage(
+        manifest.get("map_version"),
+        manifest.get("source_pbf_sha256"),
+        label="artifact manifest",
+    )
 
     for field, expected in (
         ("schema_version", reference["schema_version"]),

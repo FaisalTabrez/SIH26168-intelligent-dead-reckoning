@@ -27,14 +27,23 @@ python tools/maps/verify_s6b1_artifact.py --artifact-dir <external-directory>
 
 Add `--json` for a bounded machine-readable result. The verifier:
 
-1. validates the tracked I-21 reference against its Draft 2020-12 schema;
+1. validates the tracked I-21 reference against its Draft 2020-12 schema and
+   requires the S6B1 map-version hash token to match the source PBF SHA-256;
 2. hashes the delivery manifest and ZIP using streaming SHA-256;
 3. rejects duplicate, encrypted, absolute, traversal or undeclared ZIP members;
 4. checks every declared member size and hash without extracting the archive;
-5. cross-checks source/region/graph hashes, exact bounds, attribution, graph
+5. applies the same map-version/source-hash check to the delivery manifest;
+6. cross-checks source/region/graph hashes, exact bounds, attribution, graph
    counts, deterministic rebuild hashes and all recorded test outcomes; and
-6. rejects any route that is not still `FIELD_VALIDATION_PENDING` or that is
+7. rejects any route that is not still `FIELD_VALIDATION_PENDING` or that is
    represented as finally selected.
+
+The currently frozen delivery is intentionally rejected: its manifest declares
+`mgit-pbf-0711df3ca31f3daf-v1`, while the authoritative source PBF SHA-256 begins
+`0711df3ca31f3d83`. The tracked canonical identity uses the matching 16-hex
+prefix. Do not rewrite the external manifest or archive; a corrected immutable
+replacement must come from the artifact producer and will have new delivery
+hashes.
 
 Verification failure rejects the map package. Navigation remains unmatched;
 the verifier does not alter C-07 state and does not implement graph-store

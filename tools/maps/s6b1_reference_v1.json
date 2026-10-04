@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "map_version": "mgit-pbf-0711df3ca31f3daf-v1",
+  "map_version": "mgit-pbf-0711df3ca31f3d83-v1",
   "source_pbf_sha256": "0711df3ca31f3d83a4d2b608adaa0cd1e8e37b1f5a4bf6aece6543d843681790",
   "region_sha256": "be851dc0ad6a191175ebf7055884b1b08ada1fb428eab795c79b0088a25eed30",
   "graph_sha256": "8c2c6e8e8e7bde66507a09b2d42a341df76a5a93662e79ebe94094ace61c5305",
@@ -59,6 +59,7 @@
   "source_pbf_redistribution_authorized": false,
   "limitations": [
     "This reference verifies immutable artifact identity and recorded evidence; it does not implement SQLite graph-store access or map matching.",
+    "The frozen external manifest declares a map-version hash token that does not match source_pbf_sha256; the delivery is rejected until its producer issues a corrected immutable replacement.",
     "No PMTiles display artifact is present, so display_sha256 remains null.",
     "Both candidate routes remain FIELD_VALIDATION_PENDING; no final route is selected.",
     "S6B1 acceptance is conditional and does not establish Android rendering, matcher validity, field safety or navigation accuracy."

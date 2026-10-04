@@ -113,7 +113,7 @@ class SyntheticS6B1:
             "schema_version": 1,
             "artifact": "S6B1_MGIT_Road_Graph_Foundation_v1",
             "build_version": "S6B1-v1",
-            "map_version": "synthetic-map-v1",
+            "map_version": f"mgit-pbf-{pbf_hash[:16]}-v1",
             "gate_decision": "S6B1-CONDITIONAL",
             "source_pbf_sha256": pbf_hash,
             "region_sha256": region_hash,
@@ -139,7 +139,7 @@ class SyntheticS6B1:
 
         self.reference = {
             "schema_version": 1,
-            "map_version": "synthetic-map-v1",
+            "map_version": f"mgit-pbf-{pbf_hash[:16]}-v1",
             "source_pbf_sha256": pbf_hash,
             "region_sha256": region_hash,
             "graph_sha256": graph_hash,
@@ -242,6 +242,11 @@ class MapGraphManifestContractTest(unittest.TestCase):
         schema = json.loads(verifier.DEFAULT_SCHEMA.read_text(encoding="utf-8"))
         reference = json.loads(verifier.DEFAULT_REFERENCE.read_text(encoding="utf-8"))
         jsonschema.Draft202012Validator(schema).validate(reference)
+        verifier.verify_map_version_lineage(
+            reference["map_version"],
+            reference["source_pbf_sha256"],
+            label="reference",
+        )
         self.assertFalse(reference["source_pbf_redistribution_authorized"])
         self.assertIsNone(reference["display_sha256"])
         self.assertEqual(reference["route_status"], "FIELD_VALIDATION_PENDING")
@@ -270,6 +275,17 @@ class S6B1ArtifactVerifierTest(unittest.TestCase):
             fixture.reference["delivery"]["archive"]["sha256"] = "0" * 64
             fixture.write_reference()
             with self.assertRaisesRegex(verifier.VerificationError, "delivery SHA-256"):
+                self.verify(fixture)
+
+    def test_map_version_hash_token_mismatch_is_rejected(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            fixture = SyntheticS6B1(Path(temporary))
+            fixture.reference["map_version"] = "mgit-pbf-0000000000000000-v1"
+            fixture.write_reference()
+            with self.assertRaisesRegex(
+                verifier.VerificationError,
+                "map_version hash token does not match source PBF",
+            ):
                 self.verify(fixture)
 
     def test_additional_delivery_file_is_rejected(self):
