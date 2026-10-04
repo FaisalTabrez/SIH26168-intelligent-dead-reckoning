@@ -17,9 +17,13 @@ def main() -> None:
     parser.add_argument("group", choices=("dataset", "python"))
     args = parser.parse_args()
     test_directories = (
-        ["tools/dataset/tests"]
+        ("tools/dataset/tests",)
         if args.group == "dataset"
-        else ["tools/bootstrap/tests", "tools/maps/tests"]
+        else (
+            "tools/bootstrap/tests",
+            "experiments/wp11_2/tests",
+            "tools/maps/tests",
+        )
     )
     with tempfile.TemporaryDirectory(prefix=f"sih-ci-{args.group}-") as directory:
         location = Path(directory).resolve()
